@@ -1,0 +1,203 @@
+<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>AMB מערכות – ניהול גמ״ח</title>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--tx:#16202e;--mu:#64748b;--pr:#1d4ed8;--pr2:#1e3a8a;--ln:#dbe3ef;--ok:#16a34a;--wn:#3b82f6;--er:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1220;--card:#121b2e;--tx:#e6edf7;--mu:#94a3b8;--pr:#3b82f6;--pr2:#1d4ed8;--ln:#22304a;--wn:#60a5fa}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Heebo,Arial,sans-serif;font-size:15px}
+header{background:linear-gradient(135deg,var(--pr2),var(--pr));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header b{font-size:22px;letter-spacing:1px}header small{opacity:.85;margin-right:8px}
+nav{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--ln)}
+nav button{white-space:nowrap}main{padding:16px;max-width:1100px;margin:auto}
+button,.btn{background:var(--pr);color:#fff;border:1px solid var(--pr);border-radius:10px;padding:8px 14px;cursor:pointer;font:inherit;display:inline-block;transition:transform .15s,filter .15s}
+button:hover,.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.g{background:var(--card);color:var(--pr);border:1px solid var(--pr)}button.on{background:var(--pr);color:#fff}button.r{background:var(--er);border-color:var(--er);color:#fff}
+input,select,textarea{font:inherit;padding:8px;border:1px solid var(--ln);border-radius:8px;background:var(--card);color:var(--tx);width:100%}
+input[type=checkbox]{width:auto}label{font-size:13px;color:var(--mu);display:block}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}.grid .card{margin:0}
+.hv{transition:transform .2s,box-shadow .2s}.hv:hover{transform:translateY(-5px);box-shadow:0 12px 26px rgba(0,0,0,.18)}
+.tile{border-radius:14px;padding:14px 18px;color:#fff}.tile span{opacity:.9}.tile b{display:block;font-size:28px;margin-top:4px}
+.t1{background:linear-gradient(135deg,#1d4ed8,#60a5fa)}.t2{background:linear-gradient(135deg,#15803d,#4ade80)}.t3{background:linear-gradient(135deg,#1e3a8a,#3b82f6)}.t4{background:linear-gradient(135deg,#b91c1c,#f87171)}
+.rc{text-align:center}.rc h3{margin-bottom:4px}.seg{animation:gr 1s ease-out both;transition:stroke-width .2s;cursor:pointer}.seg:hover{stroke-width:27}
+@keyframes gr{from{stroke-dasharray:0 600}}
+.lg{display:flex;gap:12px;justify-content:center;font-size:12px;color:var(--mu);flex-wrap:wrap}.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:4px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:8px;text-align:right;border-bottom:1px solid var(--ln);white-space:nowrap}th{color:var(--mu);font-weight:500}
+tr.c{cursor:pointer}tr.c:hover{background:var(--bg)}
+.al{padding:8px 12px;border-radius:8px;margin:6px 0;background:#dbeafe;color:#1e3a8a;transition:transform .15s}.al:hover{transform:translateX(-4px)}.al.e{background:#fee2e2;color:#7f1d1d}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}.bar input{max-width:260px}
+.tag{padding:2px 8px;border-radius:99px;font-size:12px;background:var(--bg);border:1px solid var(--ln)}
+#login{max-width:380px;margin:60px auto}h2,h3{margin:0 0 12px}
+@media print{header,nav,.bar,button{display:none!important}}
+</style></head><body>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),mem={};
+const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){}return mem[k]||null};
+const sv=(k,v)=>{mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let U=null,D=null,view='dash',sel=null,comb=false,bk=null;
+const save=()=>sv('amb_d_'+U,D);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fm=n=>'₪'+Math.round(n||0).toLocaleString('he-IL');
+const uid=()=>Math.random().toString(36).slice(2,9);
+const today=()=>new Date().toISOString().slice(0,10);
+const addM=(d,n)=>{const x=new Date(d);x.setMonth(x.getMonth()+n);return x.toISOString().slice(0,10)};
+const L=id=>D.loans.find(l=>l.id==id);
+const paid=l=>(l.pays||[]).filter(p=>!p.ret).reduce((a,p)=>a+ +p.amount,0);
+const inst=l=>l.n?l.amount/l.n:0;
+const endD=l=>l.start&&l.n?addM(l.start,+l.n):'';
+const name=l=>l.first+' '+l.last+(l.childName?' (חתונת '+esc(l.childName)+')':'');
+function due(l){if(!l.start)return 0;const s=new Date(l.start),t=new Date();let m=(t.getFullYear()-s.getFullYear())*12+t.getMonth()-s.getMonth();if(t.getDate()<(l.day||1))m--;return Math.max(0,Math.min(+l.n,m))}
+const late=l=>paid(l)+1<due(l)*inst(l)-1&&paid(l)<l.amount;
+const active=l=>paid(l)<+l.amount-1;
+const color=p=>p<34?'var(--er)':p<67?'var(--wn)':'var(--ok)';
+function donut(a,b){const p=b?Math.min(100,a/b*100):0,r=60,c=2*Math.PI*r;
+return `<svg viewBox="0 0 160 160" width="190"><circle cx="80" cy="80" r="${r}" fill="none" stroke="var(--ln)" stroke-width="16"/><circle cx="80" cy="80" r="${r}" fill="none" stroke="${color(p)}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 80 80)"/><text x="80" y="70" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">${Math.round(p)}%</text><text x="80" y="90" text-anchor="middle" font-size="11" fill="currentColor">שולם ${fm(a)}</text><text x="80" y="106" text-anchor="middle" font-size="11" fill="currentColor">נותר ${fm(b-a)}</text></svg>`}
+
+/* ---------- כניסה ובעלים ---------- */
+let ROLE=null,IMP=false,OWNU=null;
+const hs=s=>{let h=5381;for(const c of s)h=h*33^c.charCodeAt(0);return String(h>>>0)};
+const US=()=>{const u=ld('amb_users')||{};for(const k in u)if(typeof u[k]=='string')u[k]={h:u[k],role:'gemach',gname:k};return u};
+const hasOwner=()=>Object.values(US()).some(x=>x.role=='owner');
+const okU=u=>/^[^'"<>\s]+$/.test(u);
+const defD=g=>({gname:g,base:0,loans:[],lastSel:[],tasks:[]});
+function loginV(msg){const no=!hasOwner();$('#app').innerHTML=`<div id="login" class="card"><h2>AMB מערכות</h2><p style="color:var(--mu);margin-top:-8px">${no?'הגדרה ראשונית – יצירת חשבון בעלים':'ניהול גמ״ח – כניסה'}</p><label>דוא״ל / שם משתמש</label><input id="u"><label style="margin-top:8px">סיסמה</label><input id="p" type="password"><p style="color:var(--er)">${msg||''}</p><div class="bar"><button onclick="${no?'setupOwner()':'login()'}">${no?'יצירת חשבון בעלים':'כניסה'}</button></div><small style="color:var(--mu)">גרסת אב-טיפוס: הנתונים נשמרים בדפדפן זה בלבד.</small></div>`}
+function login(){const us=US(),u=$('#u').value.trim().toLowerCase();if(us[u]&&us[u].h==hs($('#p').value))start(u);else loginV('פרטי כניסה שגויים')}
+function setupOwner(){const u=$('#u').value.trim().toLowerCase(),p=$('#p').value;if(!okU(u)||p.length<4)return loginV('נא למלא שם משתמש (ללא רווחים) וסיסמה של 4 תווים לפחות');const us=US();if(us[u]){if(us[u].h!=hs(p))return loginV('שם המשתמש קיים. להפיכה לבעלים הזן את הסיסמה הישנה שלו, או בחר שם אחר');us[u].role='owner';us[u].gname='בעלים'}else us[u]={h:hs(p),role:'owner',gname:'בעלים'};sv('amb_users',us);start(u)}
+function start(u){const x=US()[u];U=u;ROLE=x.role;IMP=false;if(ROLE=='owner'){OWNU=u;D=null;view='own'}else{D=ld('amb_d_'+u)||defD(x.gname);view='dash'}shell()}
+function logout(){U=null;D=null;ROLE=null;IMP=false;loginV()}
+function shell(){const ow=ROLE=='owner'&&!IMP;const nv=ow?[['own','ניהול גמחים']]:[['dash','לוח בקרה'],['list','לווים'],['bank','בנק'],['coll','גבייה ותשלומים'],['tasks','משימות'],['set','הגדרות']];if(ow)view='own';
+const hb='background:rgba(255,255,255,.18);border:1px solid #fff8';
+$('#app').innerHTML=`<header><div><b>AMB מערכות</b><small>ניהול גמ״ח · ${ow?'ניהול בעלים':esc(D.gname)}</small></div><div class="bar" style="margin:0">${IMP?`<button style="${hb}" onclick="exitG()">← חזרה לניהול בעלים</button>`:''}<button style="${hb}" onclick="logout()">יציאה</button></div></header><nav>${nv.map(n=>`<button class="${view==n[0]?'on':'g'}" onclick="go('${n[0]}')">${n[1]}</button>`).join('')}</nav><main id="m"></main>`;
+$('#m').innerHTML=({own:ownV,dash,list,card,status,bank:bankV,coll,tasks:tasksV,set})[view]()}
+const go=v=>{view=v;shell()};const openL=(id,v='card')=>{pre=null;sel=id;view=v;shell()};
+function ownV(){const us=US(),g=Object.entries(us).filter(e=>e[1].role=='gemach');
+return `<div class="card"><h3>הוספת גמ״ח חדש</h3><div class="grid"><div><label>שם הגמ״ח</label><input id="ng"></div><div><label>שם משתמש / מייל</label><input id="nu"></div><div><label>סיסמה</label><input id="np"></div></div><button onclick="addG()">הוספה</button></div>
+<div class="card tw"><h3>הגמחים שלי (${g.length})</h3><table><tr><th>שם</th><th>משתמש</th><th>הלוואות</th><th>מזומן</th><th></th></tr>${g.map(([u,x],i)=>{const d=ld('amb_d_'+u)||defD(x.gname);return `<tr><td>${esc(x.gname)}</td><td>${esc(u)}</td><td>${d.loans.length}</td><td>${fm(cashOf(d))}</td><td><button onclick="enterG('${u}')">כניסה</button> <input id="rp${i}" placeholder="סיסמה חדשה" style="width:130px"> <button class="g" onclick="resetP('${u}',${i})">איפוס</button> <button class="g" onclick="delG('${u}')">מחיקה</button></td></tr>`}).join('')||'<tr><td colspan="5">עדיין לא נוספו גמחים</td></tr>'}</table></div>`}
+function addG(){const g=$('#ng').value.trim(),u=$('#nu').value.trim().toLowerCase(),p=$('#np').value;if(!g||!okU(u)||p.length<4)return alert('נא למלא שם גמ״ח, שם משתמש (ללא רווחים) וסיסמה של 4 תווים לפחות');const us=US();if(us[u])return alert('שם המשתמש תפוס');us[u]={h:hs(p),role:'gemach',gname:g};sv('amb_users',us);sv('amb_d_'+u,defD(g));shell()}
+function enterG(u){IMP=true;U=u;D=ld('amb_d_'+u)||defD(US()[u].gname);view='dash';shell()}
+function exitG(){IMP=false;U=OWNU;D=null;view='own';shell()}
+function resetP(u,i){const p=$('#rp'+i).value;if(p.length<4)return alert('סיסמה: 4 תווים לפחות');const us=US();us[u].h=hs(p);sv('amb_users',us);alert('הסיסמה עודכנה')}
+function delG(u){if(!confirm('למחוק את הגמ״ח וכל הנתונים שלו? אי אפשר לשחזר.'))return;const us=US();delete us[u];sv('amb_users',us);sv('amb_d_'+u,null);shell()}
+
+/* ---------- לוח בקרה ---------- */
+const T=()=>D.tasks=D.tasks||[];
+function alerts(){const a=[];D.loans.forEach(l=>{const n=name(l);
+(l.pays||[]).filter(p=>p.ret).forEach(p=>a.push(['e',`תשלום חזר: ${n} – ${fm(p.amount)} (${p.date})`,l.id,'ret']));
+const m=[];if(!l.tz)m.push('ת״ז');if(!l.email)m.push('מייל');if(!l.childTz)m.push('ת״ז ילד');if(l.hok&&!(l.bank&&l.branch&&l.acct))m.push('פרטי בנק להו״ק');
+if(m.length)a.push(['w',`חסרים פרטים אצל ${n}: ${m.join(', ')}`,l.id,'miss']);
+if(active(l)&&late(l))a.push(['w',`${n} בפיגור – שולם ${fm(paid(l))} מתוך ${fm(due(l)*inst(l))} שנדרשו עד היום`,l.id,'late'])});
+T().filter(t=>!t.done&&t.date<=today()).forEach(t=>a.push([t.date<today()?'e':'w',`${t.kind||'משימה'}: ${esc(t.title)} (${t.date})`,'','task']));return a}
+function mailHref(){const ae=D.ae||{},al=alerts().filter(a=>ae[a[3]]!==false);const b=al.map(a=>'• '+a[1].replace(/&amp;/g,'&')).join('\n');return 'mailto:'+D.email+'?subject='+encodeURIComponent('AMB – התראות '+D.gname+' '+today())+'&body='+encodeURIComponent(b.slice(0,1500))}
+function cashOf(d){return d.base-d.loans.reduce((a,l)=>a+(l.old?0:+l.amount),0)+d.loans.reduce((a,l)=>a+(l.pays||[]).filter(p=>!p.ret&&!(l.old&&p.src=='יבוא')).reduce((x,p)=>x+ +p.amount,0),0)}
+function rh(el,l,v){const g=el.ownerSVGElement;g.querySelector('.c1').textContent=l||g.dataset.l;g.querySelector('.c2').textContent=v||g.dataset.v}
+function ring(ttl,segs,l0,v0){const r=62,C=2*Math.PI*r,t=segs.reduce((a,x)=>a+x.v,0);let o=0;
+const arcs=t?segs.filter(x=>x.v>0).map(x=>{const n=C*x.v/t,e=`<circle class="seg" cx="90" cy="90" r="${r}" fill="none" stroke="${x.c}" stroke-width="20" stroke-dasharray="${n} ${C-n}" stroke-dashoffset="${-o}" transform="rotate(-90 90 90)" onmouseover="rh(this,'${x.l} ('+Math.round(${x.v/t*100})+'%)','${fm(x.v)}')" onmouseout="rh(this)"><title>${x.l}: ${fm(x.v)}</title></circle>`;o+=n;return e}).join(''):'';
+return `<div class="card hv rc"><h3>${ttl}</h3><svg viewBox="0 0 180 180" width="100%" style="max-width:220px" data-l="${l0}" data-v="${v0}"><circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--ln)" stroke-width="20"/>${arcs}<text class="c1" x="90" y="84" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">${l0}</text><text class="c2" x="90" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="currentColor">${v0}</text></svg><div class="lg">${segs.map(x=>`<span><i style="background:${x.c}"></i>${x.l}</span>`).join('')}</div></div>`}
+function dash(){const ac=D.loans.filter(active),tot=D.loans.reduce((a,l)=>a+ +l.amount,0),pd=D.loans.reduce((a,l)=>a+paid(l),0),out=tot-pd,cash=cashOf(D);
+const mo=today().slice(0,7),mc=D.loans.reduce((a,l)=>a+(l.pays||[]).filter(p=>!p.ret&&p.date.startsWith(mo)).reduce((x,p)=>x+ +p.amount,0),0),exp=ac.reduce((a,l)=>a+inst(l),0),al=alerts();
+return `<div class="grid"><div class="tile t1 hv"><span>לווים פעילים</span><b>${new Set(ac.map(l=>l.tz||l.id)).size}</b></div><div class="tile t2 hv"><span>הלוואות פעילות</span><b>${ac.length}</b></div><div class="tile t3 hv"><span>הוחזר עד היום</span><b>${fm(pd)}</b></div><div class="tile t4 hv"><span>התראות</span><b>${al.length}</b></div></div>
+<div class="grid">${ring('מזומן בגמ״ח',[{v:Math.max(0,cash),c:'#16a34a',l:'מזומן זמין'},{v:out,c:'#2563eb',l:'מושקע בהלוואות'}],'מזומן בגמ״ח',fm(cash))}${ring('יתרת חוב',[{v:pd,c:'#16a34a',l:'הוחזר'},{v:out,c:'#dc2626',l:'יתרת חוב'}],'יתרת חוב',fm(out))}${ring('גבייה החודש',[{v:mc,c:'#2563eb',l:'נגבה'},{v:Math.max(0,exp-mc),c:'#bfdbfe',l:'נותר לגבייה'}],'נגבה החודש',fm(mc))}</div>
+${D.bankLast?`<p><span class="tag">דף בנק אחרון: ${esc(D.bankLast)}</span></p>`:'<p><span class="tag">טרם הועלה דף בנק</span></p>'}
+${D.email&&al.length?`<p><a class="btn" href="${mailHref()}" target="_blank">שלח התראות למייל</a></p>`:''}<div class="card"><h3>התראות (${al.length})</h3>${al.map(a=>`<div class="al ${a[0]}" style="cursor:pointer" onclick="${a[2]?`openL('${a[2]}')`:`go('tasks')`}">${a[1]}</div>`).join('')||'<p style="color:var(--ok)">הכל תקין ✓</p>'}</div>
+${D.loans.length?'':'<div class="card"><p>המערכת ריקה. אפשר להתחיל עם נתוני הדגמה:</p><button onclick="demo()">טען נתוני הדגמה</button></div>'}`}
+function demo(){const f=[['יעקב','כהן'],['משה','לוי'],['דוד','אברהם'],['שמעון','פרידמן']];f.forEach((x,i)=>D.loans.push({id:uid(),first:x[0],last:x[1],tz:'30000000'+i,email:i%2?'':`a${i}@mail.com`,childName:'שרה',childTz:i?'':'40000000'+i,bank:'12',branch:'600',acct:'12345'+i,start:addM(today(),-3-i),day:10,amount:20000+i*5000,n:20+i*4,hok:i<3,docs:[],pays:[]}));
+D.loans.forEach((l,i)=>{for(let k=1;k<=Math.min(due(l),3-i+1);k++)l.pays.push({date:addM(l.start,k),amount:inst(l),src:'ידני'})});D.base=300000;save();shell()}
+
+/* ---------- רשימה + אקסל ---------- */
+function list(){return `<div class="bar"><input id="q" placeholder="חיפוש שם / ת״ז" oninput="rows()"><button onclick="openL('new')">+ לווה חדש</button><button class="g" onclick="exportX()">ייצוא לאקסל</button><button class="g" onclick="tmpl()">תבנית אקסל</button><label class="btn g" style="color:var(--pr);display:inline-block">ייבוא מאקסל (גם הלוואות קיימות)<input type="file" accept=".xlsx,.xls,.csv" hidden onchange="importX(this.files[0])"></label></div><p style="color:var(--mu);font-size:13px">הוספת הלוואה קיימת: מורידים את התבנית, ממלאים את כל הפרטים וגם "מספר תשלומים ששולמו עד כה" (או "סכום ששולם עד כה"), ומייבאים.</p><div class="card tw"><table><thead><tr><th>שם</th><th>ת״ז</th><th>סכום</th><th>שולם</th><th>סיום</th><th>הו״ק</th><th></th></tr></thead><tbody id="rows">${rowsH('')}</tbody></table></div>`}
+function rowsH(q){return D.loans.filter(l=>(l.first+l.last+l.tz).includes(q)).map(l=>{const p=l.amount?Math.round(paid(l)/l.amount*100):0;return `<tr class="c" onclick="openL('${l.id}')"><td>${name(l)}</td><td>${esc(l.tz)}</td><td>${fm(l.amount)}</td><td style="color:${color(p)}">${p}%</td><td>${endD(l)}</td><td>${l.hok?'✓':''}</td><td>${active(l)&&late(l)?'<span class="tag" style="color:var(--er)">בפיגור</span>':''}</td></tr>`}).join('')||'<tr><td colspan="7">אין לווים</td></tr>'}
+const rows=()=>{$('#rows').innerHTML=rowsH($('#q').value)};
+const HD=['שם','שם משפחה','מספר זהות','מייל','טלפון','שם הילד','ת״ז הילד','בנק','סניף','חשבון','תאריך התחלה','יום חיוב','סכום הלוואה','מספר תשלומים','הו״ק (כן/לא)','מספר תשלומים ששולמו עד כה','סכום ששולם עד כה'];
+const KS=['first','last','tz','email','phone','childName','childTz','bank','branch','acct','start','day','amount','n','hok'];
+async function dl(name,data){try{if(typeof claude!='undefined'&&claude.use){const d=await claude.use('downloads');await d.save({filename:name,data});return}}catch(e){if(e&&e.code=='declined')return}
+try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){alert('לא ניתן להוריד קובץ בתצוגה זו')}}
+const WAIT='ספריית האקסל עדיין נטענת, נסה שוב בעוד רגע';
+const wb=rows=>{if(!window.XLSX){alert(WAIT);throw 0}const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(rows),'לווים');w.Workbook={Views:[{RTL:true}]};return XLSX.write(w,{type:'array',bookType:'xlsx'})};
+const tmpl=()=>dl('תבנית_לווים.xlsx',wb([HD,['ישראל','ישראלי','123456789','a@mail.com','050-0000000','רחל','987654321','12','600','123456','2025-06-10',10,30000,30,'כן',5,'']]));
+const exportX=()=>dl('לווים.xlsx',wb([HD,...D.loans.map(l=>[...KS.map(k=>k=='hok'?(l.hok?'כן':'לא'):l[k]),(l.pays||[]).filter(p=>!p.ret).length,paid(l)])]));
+function importX(f){if(!f)return;if(!window.XLSX)return alert(WAIT);const r=new FileReader();r.onload=e=>{const w=XLSX.read(e.target.result,{type:'array'}),j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]],{header:1,raw:false}).slice(1);let c=0,bad=0,dup=0;
+j.forEach(x=>{if(!x[0]&&!x[1])return;const l={id:uid(),docs:[],pays:[]};KS.forEach((k,i)=>l[k]=String(x[i]??'').trim());
+const m=l.start.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);if(m)l.start=(m[3].length==2?'20'+m[3]:m[3])+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+l.hok=l.hok=='כן';l.amount=+String(l.amount).replace(/,/g,'')||0;l.n=+l.n||1;l.day=+l.day||1;
+if(!/^\d{4}-\d{2}-\d{2}$/.test(l.start)||!l.amount){bad++;return}
+if(D.loans.some(o=>o.tz&&o.tz==l.tz&&o.childTz==l.childTz&&o.start==l.start)){dup++;return}
+const cnt=+String(x[15]||0).replace(/,/g,'')||0,am=+String(x[16]||'').replace(/,/g,'')||0;
+if(am>0){l.pays.push({date:today(),amount:am,src:'יבוא'});l.old=true}else if(cnt>0){for(let k=1;k<=Math.min(cnt,l.n);k++)l.pays.push({date:addM(l.start,k),amount:inst(l),src:'יבוא'});l.old=true}
+D.loans.push(l);c++});save();alert('יובאו '+c+' הלוואות'+(dup?` · ${dup} כבר קיימות`:'')+(bad?` · ${bad} שורות לא תקינות (תאריך/סכום)`:''));shell()};r.readAsArrayBuffer(f)}
+
+/* ---------- כרטיס לווה ---------- */
+const CITIES='ירושלים,תל אביב-יפו,חיפה,ראשון לציון,פתח תקווה,אשדוד,נתניה,באר שבע,בני ברק,חולון,רמת גן,אשקלון,רחובות,בת ים,בית שמש,כפר סבא,הרצליה,חדרה,מודיעין-מכבים-רעות,מודיעין עילית,לוד,רמלה,רעננה,נצרת,רהט,קריית גת,נהריה,אילת,עפולה,טבריה,צפת,נס ציונה,קריית אונו,גבעתיים,הוד השרון,אור יהודה,יבנה,אלעד,ביתר עילית,ערד,דימונה,נתיבות,שדרות,אופקים,קריית מלאכי,קריית שמונה,קריית ביאליק,קריית מוצקין,קריית אתא,קריית ים,כרמיאל,עכו,נשר,טירת כרמל,מגדל העמק,יקנעם עילית,זכרון יעקב,פרדס חנה-כרכור,גן יבנה,גדרה,קריית עקרון,מזכרת בתיה,אור עקיבא,בנימינה,עומר,מיתר,להבים,ירוחם,מצפה רמון,בית שאן,תל מונד,שוהם,גני תקווה,אזור,יהוד-מונוסון,קדימה-צורן,כפר יונה,ראש העין,רמת השרון,גבעת שמואל,מבשרת ציון,מעלה אדומים,אפרת,אריאל,עמנואל,אום אל-פחם,טירה,טייבה,כפר קאסם'.split(',');
+const STREETS='הרצל,ויצמן,ז׳בוטינסקי,בן גוריון,רוטשילד,ביאליק,הנביאים,יפו,העצמאות,הגפן,הזית,הרימון,התמר,השקמה,האלון,הברוש,האורן,הדקל,הרב קוק,רש״י,הרמב״ם,שדרות ירושלים,שדרות רבין,בן יהודה,אלנבי,הנשיא,המלך דוד,האר״י,בר אילן,חזון איש,רבי עקיבא,שמואל הנביא,אבן גבירול,הנחל,הפרחים,הגבורה,התקווה,הבנים,הרצוג,סוקולוב,אחד העם,הלל,שמאי,המעפילים,הפלמ״ח,הגליל,הנגב,הארזים,הרכבת,הבעש״ט,רבי מאיר,רבי יהודה הנשיא,החזון איש,שדרות הציונות,דרך חברון'.split(',');
+const PF=['first','last','tz','email','phone','city','street','house','bank','branch','acct','arev1','arev1tz','arev1ph','arev2','arev2tz','arev2ph'];
+const F=[['first','שם'],['last','שם משפחה'],['tz','מספר זהות'],['email','דוא״ל','email'],['phone','טלפון'],['city','עיר','text','cities'],['street','רחוב','text','streets'],['house','מס׳ בית'],['bank','בנק (מס׳)'],['branch','סניף'],['acct','חשבון'],['arev1','ערב א׳ – שם'],['arev1tz','ערב א׳ – ת״ז'],['arev1ph','ערב א׳ – טלפון'],['arev2','ערב ב׳ – שם'],['arev2tz','ערב ב׳ – ת״ז'],['arev2ph','ערב ב׳ – טלפון'],['childName','שם הילד'],['childTz','ת״ז הילד'],['start','תאריך תחילת הלוואה','date'],['day','יום חיוב בחודש','number'],['amount','סכום הלוואה','money'],['n','מספר תשלומים','number']];
+let pre=null;
+const cm=v=>v?(+v).toLocaleString('en-US'):'';
+const num=v=>+String(v).replace(/,/g,'')||0;
+function mi(el){const v=el.value.replace(/[^\d.]/g,''),q=v.split('.');el.value=v?Number(q[0]||0).toLocaleString('en-US')+(q.length>1?'.'+q[1]:''):''}
+function dls(){const cs=[...CITIES],st=[...STREETS];D.loans.forEach(l=>{if(l.city&&!cs.includes(l.city))cs.push(l.city);if(l.street&&!st.includes(l.street))st.push(l.street)});const o=a=>a.map(c=>`<option value="${esc(c)}">`).join('');return `<datalist id="cities">${o(cs)}</datalist><datalist id="streets">${o(st)}</datalist>`}
+function addLoan(id){const l=L(id);pre={docs:[],pays:[]};PF.forEach(k=>pre[k]=l[k]);pre.hok=l.hok;sel='new';view='card';shell()}
+function card(){const nw=sel=='new',l=nw?(pre||{docs:[],pays:[]}):L(sel);if(!l){view='list';return list()}
+const others=nw?[]:D.loans.filter(x=>x.tz&&x.tz==l.tz&&x.id!=l.id);
+return `<div class="bar"><button class="g" onclick="go('list')">← חזרה</button>${nw?'':`<button onclick="openL('${l.id}','status')">מצב חשבון</button><button class="g" onclick="addLoan('${l.id}')">+ הלוואה נוספת (ילד אחר)</button><button class="r" onclick="delL('${l.id}')">מחיקה</button>`}</div><div class="card"><h3>${nw?(pre&&pre.first?'הלוואה נוספת ל'+esc(pre.first+' '+(pre.last||''))+' – נא למלא שם ות״ז של הילד':'לווה / הלוואה חדשה'):name(l)}</h3>${others.length?`<p>הלוואות נוספות של לווה זה: ${others.map(o=>`<a href="#" onclick="openL('${o.id}');return false">${esc(o.childName||'ללא שם')} (${fm(o.amount)})</a>`).join(' · ')}</p>`:''}<div class="grid">${F.map(f=>{const mo=f[2]=='money';return `<div><label>${f[1]}</label><input id="f_${f[0]}" type="${mo?'text':f[2]||'text'}" ${mo?'inputmode="numeric" oninput="mi(this);calc()"':'oninput="calc()"'} ${f[3]?`list="${f[3]}" autocomplete="off"`:''} value="${mo?cm(l[f[0]]):esc(l[f[0]])}"></div>`}).join('')}<div><label>תאריך סיום (מחושב)</label><input id="endd" readonly value="${endD(l)}"></div><div><label>החזר חודשי</label><input id="mon" readonly value="${l.n?fm(inst(l)):''}"></div></div>${dls()}<p><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" id="f_hok" ${l.hok?'checked':''}> יש הו״ק לגמ״ח</label></p><button onclick="saveL('${nw?'new':l.id}')">שמירה</button></div>
+${nw?'':`<div class="card"><h3>מסמכים</h3>${(l.docs||[]).map((d,i)=>`<div class="bar"><a href="${d.data}" download="${esc(d.name)}" target="_blank">${esc(d.name)}</a><button class="g" onclick="delDoc('${l.id}',${i})">הסרה</button></div>`).join('')||'<p style="color:var(--mu)">אין מסמכים</p>'}<label class="btn g">+ הוספת מסמך (ת״ז, בקשת הלוואה…)<input type="file" hidden onchange="addDoc('${l.id}',this.files[0])"></label></div>`}`}
+function calc(){const a=num($('#f_amount').value),n=+$('#f_n').value,s=$('#f_start').value;$('#endd').value=s&&n?addM(s,n):'';$('#mon').value=n?fm(a/n):''}
+function saveL(id){const l=id=='new'?{id:uid(),docs:[],pays:[]}:L(id);F.forEach(f=>{const v=$('#f_'+f[0]).value.trim();l[f[0]]=f[2]=='number'?+v:f[2]=='money'?num(v):v});l.hok=$('#f_hok').checked;if(!l.first||!l.amount||!l.n||!l.start)return alert('נא למלא שם, סכום, תשלומים ותאריך התחלה');if(id=='new')D.loans.push(l);
+if(l.tz)D.loans.forEach(x=>{if(x.id!=l.id&&x.tz==l.tz)PF.forEach(k=>x[k]=l[k])});save();openL(l.id)}
+function delL(id){if(confirm('למחוק את ההלוואה?')){D.loans=D.loans.filter(l=>l.id!=id);save();go('list')}}
+function addDoc(id,f){if(!f)return;if(f.size>1.5e6)return alert('קובץ גדול מדי באב-טיפוס (עד 1.5MB)');const r=new FileReader();r.onload=e=>{L(id).docs.push({name:f.name,data:e.target.result});save();shell()};r.readAsDataURL(f)}
+function delDoc(id,i){L(id).docs.splice(i,1);save();shell()}
+
+/* ---------- מצב חשבון ---------- */
+function status(){const l=L(sel);if(!l){return list()}
+const grp=comb&&l.tz?D.loans.filter(x=>x.tz==l.tz):[l],amt=grp.reduce((a,x)=>a+ +x.amount,0),pd=grp.reduce((a,x)=>a+paid(x),0),mon=grp.filter(active).reduce((a,x)=>a+inst(x),0);
+const pays=grp.flatMap(x=>(x.pays||[]).map((p,i)=>({...p,l:x,i}))).sort((a,b)=>b.date.localeCompare(a.date));
+return `<div class="bar"><button class="g" onclick="openL('${l.id}')">← לכרטיס</button>${l.tz&&D.loans.filter(x=>x.tz==l.tz).length>1?`<button class="${comb?'on':'g'}" onclick="comb=${!comb};shell()">${comb?'איחוד הלוואות ✓':'איחוד הלוואות'}</button>`:''}<button class="g" onclick="report('${l.id}')">הפקת דוח אישי</button></div>
+<div class="card"><h3>מצב חשבון – ${esc(l.first+' '+l.last)}${comb?' (כל ההלוואות)':''}</h3><div class="grid" style="align-items:center"><div style="text-align:center">${donut(pd,amt)}</div><div>${grp.map(x=>`<p><b>${fm(x.amount)}</b> · חתונת ${esc(x.childName||'—')} · ${x.n} תשלומים של ${fm(inst(x))} · ${x.start}→${endD(x)}</p>`).join('')}<p>החזר חודשי כולל: <b>${fm(mon)}</b></p></div></div></div>
+<div class="card tw"><h3>תשלומים</h3><table><tr><th>תאריך</th><th>סכום</th><th>מקור</th>${comb?'<th>הלוואה</th>':''}<th></th></tr>${pays.map(p=>`<tr style="${p.ret?'opacity:.6;text-decoration:line-through':''}"><td>${p.date}</td><td>${fm(p.amount)}</td><td>${esc(p.src||'')}</td>${comb?`<td>${esc(p.l.childName||'')}</td>`:''}<td><button class="g" onclick="ret('${p.l.id}',${p.i})">${p.ret?'בטל חזרה':'סמן כחזר'}</button> <button class="g" onclick="delP('${p.l.id}',${p.i})">מחק</button></td></tr>`).join('')||'<tr><td colspan="5">אין תשלומים</td></tr>'}</table></div>
+<div class="card"><h3>הוספת תשלום</h3><div class="bar"><input id="pd" type="date" value="${today()}"><input id="pa" inputmode="numeric" oninput="mi(this)" placeholder="סכום" value="${cm(Math.round(inst(l)))}"><button onclick="addP('${l.id}')">הוסף</button></div></div>`}
+const addP=id=>{const a=num($('#pa').value);if(!a)return;L(id).pays.push({date:$('#pd').value,amount:a,src:'ידני'});save();shell()};
+const ret=(id,i)=>{const p=L(id).pays[i];p.ret=!p.ret;save();shell()};const delP=(id,i)=>{L(id).pays.splice(i,1);save();shell()};
+function report(id){const l=L(id),grp=comb&&l.tz?D.loans.filter(x=>x.tz==l.tz):[l],amt=grp.reduce((a,x)=>a+ +x.amount,0),pd=grp.reduce((a,x)=>a+paid(x),0);
+const h=`<!DOCTYPE html><html dir="rtl" lang="he"><meta charset="utf-8"><title>דוח – ${esc(l.first+' '+l.last)}</title><body style="font-family:Arial;max-width:700px;margin:auto;padding:20px"><h2>${esc(D.gname)} – דוח מצב הלוואה</h2><p>${esc(l.first+' '+l.last)} · ת״ז ${esc(l.tz)} · הופק ${today()}</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%"><tr><th>חתונה</th><th>סכום</th><th>תשלומים</th><th>התחלה</th><th>סיום</th><th>שולם</th></tr>${grp.map(x=>`<tr><td>${esc(x.childName)}</td><td>${fm(x.amount)}</td><td>${x.n}</td><td>${x.start}</td><td>${endD(x)}</td><td>${fm(paid(x))}</td></tr>`).join('')}</table><h3>סה״כ הלוואה: ${fm(amt)} · שולם: ${fm(pd)} · יתרה: ${fm(amt-pd)}</h3><h4>פירוט תשלומים</h4><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%">${grp.flatMap(x=>(x.pays||[]).filter(p=>!p.ret)).sort((a,b)=>a.date.localeCompare(b.date)).map(p=>`<tr><td>${p.date}</td><td>${fm(p.amount)}</td></tr>`).join('')}</table></body></html>`;pv('תצוגה מקדימה – דוח אישי',h,'דוח_'+l.first+'_'+l.last+'.html',h)}
+
+/* ---------- בנק ---------- */
+function bankV(){return `<div class="card"><h3>העלאת דף בנק חודשי</h3><p style="color:var(--mu)">קובץ אקסל/CSV מהבנק. המערכת מזהה לווה לפי מספר זהות או שם בשורה, ותציע התאמות לאישור.</p><input type="file" accept=".xlsx,.xls,.csv" onchange="readBank(this.files[0])"></div><div id="bk">${bk?bkH():''}</div>`}
+function readBank(f){if(!f)return;if(!window.XLSX)return alert('ספריית האקסל עדיין נטענת, נסה שוב בעוד רגע');const r=new FileReader();r.onload=e=>{const w=XLSX.read(e.target.result,{type:'array'}),j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]],{header:1,raw:false,defval:''});bk={file:f.name,items:[]};
+j.forEach(row=>{const t=row.join(' ').replace(/\s+/g,' ');const l=D.loans.filter(active).find(x=>(x.tz&&t.includes(x.tz))||(x.first&&x.last&&t.includes(x.first)&&t.includes(x.last)));if(!l)return;
+const nums=row.map(c=>parseFloat(String(c).replace(/[,₪\s]/g,''))).filter(n=>!isNaN(n)&&n>0&&String(n)!=l.tz);if(!nums.length)return;
+const am=nums.find(n=>Math.abs(n-inst(l))<1)||nums[0];const dm=t.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);let d=today();if(dm){let y=dm[3].length==2?'20'+dm[3]:dm[3];d=`${y}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`}
+bk.items.push({id:l.id,amount:am,date:d,ok:true,dup:(l.pays||[]).some(p=>p.date==d&&Math.abs(p.amount-am)<1)})});$('#bk').innerHTML=bkH()};r.readAsArrayBuffer(f)}
+function bkH(){if(!bk.items.length)return '<div class="card">לא זוהו תשלומים של לווים בקובץ.</div>';
+return `<div class="card tw"><h3>זוהו ${bk.items.length} תשלומים</h3><table><tr><th></th><th>לווה</th><th>תאריך</th><th>סכום</th><th></th></tr>${bk.items.map((x,i)=>`<tr><td><input type="checkbox" ${x.ok&&!x.dup?'checked':''} onchange="bk.items[${i}].ok=this.checked"></td><td>${name(L(x.id))}</td><td>${x.date}</td><td>${fm(x.amount)}</td><td>${x.dup?'<span class="tag">כבר קיים</span>':''}</td></tr>`).join('')}</table><br><button onclick="applyBk()">עדכן כרטיסי לווים</button></div>`}
+function applyBk(){let c=0;bk.items.forEach(x=>{if(x.ok&&!x.dup){L(x.id).pays.push({date:x.date,amount:x.amount,src:'בנק'});c++}});D.bankLast=bk.file;bk=null;save();alert('עודכנו '+c+' תשלומים');go('dash')}
+
+/* ---------- גבייה ותשלומים ---------- */
+function coll(){const ids=sel instanceof Array?sel:D.lastSel||[];sel=ids;
+return `<div class="card"><h3>גבייה – הכנת קובץ מס״ב</h3><div class="bar"><button class="g" onclick="pick('prev')">כמו חודש קודם</button><button class="g" onclick="pick('hok')">כל בעלי הו״ק</button><button class="g" onclick="pick('none')">נקה בחירה</button></div><div class="tw"><table><tr><th></th><th>לווה</th><th>סכום לחיוב</th><th>בנק</th></tr>${D.loans.filter(active).map(l=>`<tr><td><input type="checkbox" ${ids.includes(l.id)?'checked':''} onchange="tog('${l.id}',this.checked)"></td><td>${name(l)}</td><td>${fm(Math.min(inst(l),l.amount-paid(l)))}</td><td>${l.bank&&l.branch&&l.acct?l.bank+'-'+l.branch+'-'+l.acct:'<span class="tag" style="color:var(--er)">חסר</span>'}</td></tr>`).join('')}</table></div><p>נבחרו ${ids.length} · סה״כ ${fm(ids.reduce((a,i)=>a+Math.min(inst(L(i)),L(i).amount-paid(L(i))),0))}</p><button onclick="masav()">הפקת קובץ מס״ב</button> <small style="color:var(--mu)">הקובץ הוא בפורמט בסיסי – יש להתאים למפרט הרשמי של הבנק/המוסד לפני שימוש.</small></div>
+<div class="card"><h3>ביצוע תשלום הלוואה</h3><div class="bar"><select id="pl" style="max-width:300px">${D.loans.filter(active).map(l=>`<option value="${l.id}">${esc(l.first+' '+l.last)} – ${esc(l.childName||'')}</option>`).join('')}</select><input id="pd2" type="date" value="${today()}" style="max-width:160px"><input id="pa2" inputmode="numeric" oninput="mi(this)" placeholder="סכום" style="max-width:140px"><button onclick="pay()">רישום תשלום</button></div></div>`}
+const tog=(id,v)=>{sel=sel.filter(x=>x!=id);if(v)sel.push(id);D.lastSel=sel;save();shell()};
+const pick=m=>{sel=m=='hok'?D.loans.filter(l=>l.hok&&active(l)).map(l=>l.id):m=='prev'?D.loans.filter(l=>active(l)&&(l.pays||[]).some(p=>p.date.slice(0,7)==addM(today(),-1).slice(0,7)&&!p.ret)).map(l=>l.id):[];D.lastSel=sel;save();shell()};
+function masav(){if(!sel.length)return alert('לא נבחרו לווים');const lines=sel.map(L).map(l=>[l.bank,l.branch,l.acct,l.tz,(l.first+' '+l.last),Math.round(Math.min(inst(l),l.amount-paid(l))*100)].join(','));const t='בנק,סניף,חשבון,ת״ז,שם,אגורות\n'+lines.join('\n');pv('תצוגה מקדימה – קובץ גבייה',`<meta charset="utf-8"><body dir="rtl" style="font:14px monospace;white-space:pre-wrap;padding:12px">${esc(t)}</body>`,'masav_'+today()+'.txt',t)}
+let PV=null;
+function pv(t,html,fn,data){PV={fn,data};const m=document.createElement('div');m.id='mod';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:flex;align-items:center;justify-content:center;padding:14px';m.innerHTML=`<div class="card" style="width:min(820px,100%);max-height:92vh;display:flex;flex-direction:column;margin:0"><h3>${t}</h3><iframe id="pvf" style="flex:1;min-height:55vh;border:1px solid var(--ln);border-radius:8px;background:#fff" srcdoc="${esc(html)}"></iframe><div class="bar" style="margin:12px 0 0"><button onclick="pvDl()">אישור והורדה</button><button class="g" onclick="pvPr()">הדפסה</button><button class="g" onclick="pvX()">סגירה</button></div></div>`;document.body.appendChild(m)}
+const pvX=()=>{const m=$('#mod');if(m)m.remove()};
+const pvDl=async()=>{await dl(PV.fn,PV.data);pvX()};
+const pvPr=()=>{try{const f=$('#pvf').contentWindow;f.focus();f.print()}catch(e){alert('הדפסה לא זמינה בתצוגה זו – אפשר להוריד ולהדפיס')}};
+function pay(){const id=$('#pl').value,a=num($('#pa2').value);if(!id||!a)return;L(id).pays.push({date:$('#pd2').value,amount:a,src:'ידני'});save();openL(id,'status')}
+
+/* ---------- משימות ---------- */
+function tasksV(){const td=today(),ts=T().slice().sort((a,b)=>(a.done-b.done)||a.date.localeCompare(b.date)),auto=[],dd=new Date().getDate();
+D.loans.filter(active).forEach(l=>{const df=l.day-dd,n=esc(l.first+' '+l.last);if(l.hok&&df>=0&&df<=3)auto.push(`חיוב הו״ק של ${n} ${df?'בעוד '+df+' ימים':'היום'} (${fm(inst(l))})`);const e=endD(l);if(e&&e>=td&&e<=addM(td,2))auto.push(`ההלוואה של ${n} מסתיימת ב-${e}`)});
+return `<div class="card"><h3>הוספת משימה / תזכורת</h3><div class="bar"><input id="tt" placeholder="מה צריך לעשות?" style="max-width:300px"><input id="td" type="date" value="${td}" style="max-width:160px"><select id="tk" style="max-width:120px"><option>משימה</option><option>תזכורת</option></select><select id="tl" style="max-width:220px"><option value="">ללא לווה</option>${D.loans.map(l=>`<option value="${l.id}">${esc(l.first+' '+l.last)}${l.childName?' – '+esc(l.childName):''}</option>`).join('')}</select><button onclick="addT()">הוספה</button></div></div>
+<div class="card"><h3>המשימות שלי</h3>${ts.map(t=>{const l=t.loan&&L(t.loan);return `<div class="al ${!t.done&&t.date<td?'e':''}" style="display:flex;gap:10px;align-items:center;${t.done?'opacity:.55;text-decoration:line-through':''}"><input type="checkbox" ${t.done?'checked':''} onchange="togT('${t.id}')"><b>${esc(t.title)}</b><span class="tag">${t.kind||'משימה'}</span><span>${t.date}</span>${l?`<a href="#" onclick="openL('${l.id}');return false">${esc(l.first+' '+l.last)}</a>`:''}<button class="g" style="margin-right:auto" onclick="delT('${t.id}')">מחיקה</button></div>`}).join('')||'<p style="color:var(--mu)">אין משימות</p>'}</div>
+<div class="card"><h3>תזכורות אוטומטיות</h3>${auto.map(x=>`<div class="al">${x}</div>`).join('')||'<p style="color:var(--mu)">אין תזכורות בימים הקרובים</p>'}</div>`}
+function addT(){const t=$('#tt').value.trim();if(!t)return;T().push({id:uid(),title:t,date:$('#td').value||today(),kind:$('#tk').value,loan:$('#tl').value,done:false});save();shell()}
+const togT=id=>{const t=T().find(x=>x.id==id);t.done=!t.done;save();shell()};const delT=id=>{D.tasks=T().filter(x=>x.id!=id);save();shell()};
+/* ---------- הגדרות ---------- */
+function set(){const ae=D.ae||{},ck=(k,t)=>`<label style="display:flex;gap:8px;align-items:center;color:var(--tx);margin:6px 0"><input type="checkbox" id="ae_${k}" ${ae[k]===false?'':'checked'}> ${t}</label>`;
+return `<div class="card"><h3>הגדרות גמ״ח</h3><label>שם הגמ״ח</label><input id="gn" value="${esc(D.gname)}"><label style="margin-top:8px">מזומן בגמ״ח בתחילת העבודה במערכת (₪)</label><input id="gb" inputmode="numeric" oninput="mi(this)" value="${cm(D.base)}"></div>
+<div class="card"><h3>התראות למייל</h3><label>כתובת המייל של הגמ״ח</label><input id="gm" type="email" value="${esc(D.email||'')}"><p>${ck('ret','תשלומים שחזרו')}${ck('late','לווים בפיגור')}${ck('miss','פרטים חסרים')}${ck('task','משימות ותזכורות שהגיע זמנן')}</p><p style="color:var(--mu);font-size:13px">בלוח הבקרה יופיע כפתור "שלח התראות למייל" שפותח הודעה מוכנה בתוכנת המייל שלך. שליחה אוטומטית ברקע, גם כשהמערכת סגורה, דורשת שרת והיא חלק מהשלב הבא.</p></div><button onclick="saveSet()">שמירה</button>
+<div class="card" style="margin-top:14px"><p>כל גמ״ח נכנס עם שם משתמש וסיסמה משלו ורואה רק את הנתונים שלו.</p></div>`}
+function saveSet(){D.gname=$('#gn').value;D.base=num($('#gb').value);D.email=$('#gm').value.trim();D.ae={};['ret','late','miss','task'].forEach(k=>D.ae[k]=$('#ae_'+k).checked);save();shell()}
+loginV();
+</script></body></html>
