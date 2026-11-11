@@ -1,42 +1,90 @@
 <!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>AMB מערכות – ניהול גמ״ח</title>
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#f3f6fb;--card:#fff;--tx:#16202e;--mu:#64748b;--pr:#1d4ed8;--pr2:#1e3a8a;--ln:#dbe3ef;--ok:#16a34a;--wn:#3b82f6;--er:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1220;--card:#121b2e;--tx:#e6edf7;--mu:#94a3b8;--pr:#3b82f6;--pr2:#1d4ed8;--ln:#22304a;--wn:#60a5fa}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Heebo,Arial,sans-serif;font-size:15px}
+:root{--bg:#f3f6fb;--card:#fff;--tx:#16202e;--mu:#64748b;--pr:#1d4ed8;--pr2:#1e3a8a;--ln:#dbe3ef;--ok:#16a34a;--wn:#3b82f6;--er:#dc2626;--me:#dbeafe;--nav:#e6ecf8;--tb:#f0fdf4;--tbl:#16a34a;--br:1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1220;--card:#121b2e;--tx:#e6edf7;--mu:#94a3b8;--pr:#3b82f6;--pr2:#1d4ed8;--ln:#22304a;--wn:#60a5fa;--me:#1e3a8a;--nav:#0e1830;--tb:#10241a;--tbl:#22c55e}}
+:root[data-theme=dark]{--bg:#0b1220;--card:#121b2e;--tx:#e6edf7;--mu:#94a3b8;--pr:#3b82f6;--pr2:#1d4ed8;--ln:#22304a;--wn:#60a5fa;--me:#1e3a8a;--nav:#0e1830;--tb:#10241a;--tbl:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Heebo,Arial,sans-serif;font-size:.9375rem;-webkit-text-size-adjust:100%}
 header{background:linear-gradient(135deg,var(--pr2),var(--pr));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 header b{font-size:22px;letter-spacing:1px}header small{opacity:.85;margin-right:8px}
-nav{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--ln)}
-nav button{white-space:nowrap}main{padding:16px;max-width:1100px;margin:auto}
-button,.btn{background:var(--pr);color:#fff;border:1px solid var(--pr);border-radius:10px;padding:8px 14px;cursor:pointer;font:inherit;display:inline-block;transition:transform .15s,filter .15s}
+nav{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;background:var(--nav);box-shadow:0 2px 6px rgba(0,0,0,.08);border-bottom:1px solid var(--ln);position:sticky;top:0;z-index:20;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+nav button{white-space:nowrap;position:relative}main{padding:16px 16px 96px;max-width:1100px;margin:auto}
+button,.btn{background:var(--pr);color:#fff;border:1px solid var(--pr);border-radius:10px;padding:8px 14px;cursor:pointer;font:inherit;display:inline-block;transition:transform .15s,filter .15s;text-decoration:none}
 button:hover,.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
 .g{background:var(--card);color:var(--pr);border:1px solid var(--pr)}button.on{background:var(--pr);color:#fff}button.r{background:var(--er);border-color:var(--er);color:#fff}
 input,select,textarea{font:inherit;padding:8px;border:1px solid var(--ln);border-radius:8px;background:var(--card);color:var(--tx);width:100%}
-input[type=checkbox]{width:auto}label{font-size:13px;color:var(--mu);display:block}
+input[type=checkbox]{width:auto}input[type=range]{padding:0}label{font-size:13px;color:var(--mu);display:block}
 .card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-bottom:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}.grid .card{margin:0}
+.tiles{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 .hv{transition:transform .2s,box-shadow .2s}.hv:hover{transform:translateY(-5px);box-shadow:0 12px 26px rgba(0,0,0,.18)}
 .tile{border-radius:14px;padding:14px 18px;color:#fff}.tile span{opacity:.9}.tile b{display:block;font-size:28px;margin-top:4px}
 .t1{background:linear-gradient(135deg,#1d4ed8,#60a5fa)}.t2{background:linear-gradient(135deg,#15803d,#4ade80)}.t3{background:linear-gradient(135deg,#1e3a8a,#3b82f6)}.t4{background:linear-gradient(135deg,#b91c1c,#f87171)}
 .rc{text-align:center}.rc h3{margin-bottom:4px}.seg{animation:gr 1s ease-out both;transition:stroke-width .2s;cursor:pointer}.seg:hover{stroke-width:27}
 @keyframes gr{from{stroke-dasharray:0 600}}
 .lg{display:flex;gap:12px;justify-content:center;font-size:12px;color:var(--mu);flex-wrap:wrap}.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:4px}
-.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:8px;text-align:right;border-bottom:1px solid var(--ln);white-space:nowrap}th{color:var(--mu);font-weight:500}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse}th,td{padding:8px;text-align:right;border-bottom:1px solid var(--ln);white-space:nowrap}th{color:var(--mu);font-weight:500}
 tr.c{cursor:pointer}tr.c:hover{background:var(--bg)}
 .al{padding:8px 12px;border-radius:8px;margin:6px 0;background:#dbeafe;color:#1e3a8a;transition:transform .15s}.al:hover{transform:translateX(-4px)}.al.e{background:#fee2e2;color:#7f1d1d}
 .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}.bar input{max-width:260px}
+.tb{background:var(--tb);border:1px solid var(--ln);border-right:5px solid var(--tbl);border-radius:12px;padding:10px 12px;margin:4px 0 12px}.tb .tbt{font-size:13px;font-weight:700;color:var(--tbl);width:100%;margin-bottom:-2px}.tb .g{background:var(--card);color:var(--tbl);border-color:var(--tbl)}
+.fs h3{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:2px solid var(--ln)}.fs h4{margin:14px 0 8px;color:var(--mu);font-weight:600;font-size:14px}.fs .grid{margin-bottom:6px}.arv{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.arv>div{border:1px solid var(--ln);border-radius:12px;padding:12px}
 .tag{padding:2px 8px;border-radius:99px;font-size:12px;background:var(--bg);border:1px solid var(--ln)}
+.badge{background:var(--er);color:#fff;border-radius:99px;font-size:11px;padding:1px 6px;margin-right:4px}
 #login{max-width:380px;margin:60px auto}h2,h3{margin:0 0 12px}
-@media print{header,nav,.bar,button{display:none!important}}
+.row{display:flex;gap:8px;align-items:center;color:var(--tx);margin:8px 0;font-size:14px}
+.sec{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+/* בועות צ'אט */
+.msgs{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--bg);border-radius:10px;-webkit-overflow-scrolling:touch}
+.mb{max-width:85%;padding:8px 12px;border-radius:14px;line-height:1.5;word-wrap:break-word;overflow-wrap:anywhere}
+.mb.me{align-self:flex-start;background:var(--pr);color:#fff;border-bottom-right-radius:4px}
+.mb.ot{align-self:flex-end;background:var(--card);border:1px solid var(--ln);border-bottom-left-radius:4px}
+.mb small{display:block;opacity:.7;font-size:11px;margin-top:3px}
+.mb .card{margin:8px 0 2px;padding:10px;color:var(--tx)}.mb .card table{font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.chips button{font-size:13px;padding:6px 10px;border-radius:99px}
+/* חלון שירות לקוחות */
+#sup{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:16px;z-index:60}
+#supB{border-radius:99px;padding:12px 18px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;gap:6px;align-items:center}
+#supP{position:absolute;bottom:60px;right:0;width:350px;height:470px;max-height:calc(100vh - 120px);display:flex;flex-direction:column;background:var(--card);border:1px solid var(--ln);border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.3);overflow:hidden}
+#supP .hd{background:linear-gradient(135deg,var(--pr2),var(--pr));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+#supP .hd button{background:transparent;border:0;font-size:20px;padding:0 6px}
+#supP .msgs{flex:1;border-radius:0}#supP .in{display:flex;gap:6px;padding:8px;border-top:1px solid var(--ln)}
+.supin{display:none!important;align-items:center;gap:4px;padding:6px 10px;font-size:13px}.cv{display:flex;flex-direction:column;height:calc(100vh - 190px);min-height:420px}
+.cv .msgs{flex:1}.cv .in{display:flex;gap:8px;margin-top:10px}.cv .in textarea{resize:none;height:46px}
+.ibw{display:grid;grid-template-columns:260px 1fr;gap:12px}.ibl>div{padding:10px;border:1px solid var(--ln);border-radius:10px;margin-bottom:6px;cursor:pointer}.ibl>div.on{border-color:var(--pr);background:var(--me)}
+.ibr .msgs{height:52vh}
+/* נגישות */
+html.hc{--mu:var(--tx);--ln:var(--tx)}html.hc .card,html.hc button,html.hc input,html.hc select{border-width:2px}html.hc .al{border:2px solid currentColor}
+html.nm *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html.ul a{text-decoration:underline!important;font-weight:700}
+html.big button,html.big .btn,html.big input,html.big select{min-height:48px;font-size:1.05em}
+html.dim header,html.dim nav,html.dim main,html.dim #sup,html.dim #mod,html.dim #login{filter:brightness(var(--br))}
+/* טאבלט וטלפון */
+@media(max-width:900px){.ibw{grid-template-columns:1fr}.ibl{display:flex;gap:6px;overflow-x:auto}.ibl>div{min-width:170px;margin:0}}
+@media(max-width:760px){
+header{padding:10px 14px}header b{font-size:18px}header small{display:block;margin:2px 0 0}
+nav{padding:8px 10px}main{padding:10px 10px 90px}.card{padding:12px;border-radius:12px}
+.grid{grid-template-columns:1fr;gap:10px}.tiles{grid-template-columns:1fr 1fr}.tile{padding:10px 12px}.tile b{font-size:22px}
+.bar>input,.bar>select,.bar>.btn,.bar input,.bar select{max-width:100%!important;flex:1 1 140px}
+button,.btn{min-height:42px}th,td{padding:7px 6px;font-size:13px}
+#login{margin:24px 12px}
+#sup{right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#sup.open #supB{display:none}#supB span.t{display:none}
+#supP{position:fixed;inset:auto 0 0 0;width:100%;height:78vh;max-height:none;border-radius:16px 16px 0 0}
+body.v-ai #supB{display:none}.supin{display:inline-flex!important}.chips{flex-wrap:nowrap;overflow-x:auto}.chips button{white-space:nowrap}
+.cv{height:calc(100vh - 160px)}.mb{max-width:92%}
+}
+@media print{header,nav,.bar,button,#sup{display:none!important}}
 </style></head><body>
 <div id="app"></div>
 <script>
 const $=s=>document.querySelector(s),mem={};
-const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){}return mem[k]||null};
+const ld=k=>{try{const v=localStorage.getItem(k);if(v!=null)return JSON.parse(v)}catch(e){}return mem[k]??null};
 const sv=(k,v)=>{mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-let U=null,D=null,view='dash',sel=null,comb=false,bk=null;
-const save=()=>sv('amb_d_'+U,D);
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let U=null,D=null,DK=null,view='dash',sel=null,comb=false,bk=null,PERM='full';
+const VER='2.1';
+function save(){if(PERM=='view'){alert('יש לך הרשאת צפייה בלבד – השינוי לא נשמר');D=ld('amb_d_'+DK)||D;return false}sv('amb_d_'+DK,D);return true}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fm=n=>'₪'+Math.round(n||0).toLocaleString('he-IL');
 const uid=()=>Math.random().toString(36).slice(2,9);
 const today=()=>new Date().toISOString().slice(0,10);
@@ -45,13 +93,24 @@ const L=id=>D.loans.find(l=>l.id==id);
 const paid=l=>(l.pays||[]).filter(p=>!p.ret).reduce((a,p)=>a+ +p.amount,0);
 const inst=l=>l.n?l.amount/l.n:0;
 const endD=l=>l.start&&l.n?addM(l.start,+l.n):'';
-const name=l=>l.first+' '+l.last+(l.childName?' (חתונת '+esc(l.childName)+')':'');
+const name=l=>esc(l.first+' '+l.last)+(l.childName?' (חתונת '+esc(l.childName)+')':'');
 function due(l){if(!l.start)return 0;const s=new Date(l.start),t=new Date();let m=(t.getFullYear()-s.getFullYear())*12+t.getMonth()-s.getMonth();if(t.getDate()<(l.day||1))m--;return Math.max(0,Math.min(+l.n,m))}
 const late=l=>paid(l)+1<due(l)*inst(l)-1&&paid(l)<l.amount;
+const lateAmt=l=>Math.max(0,due(l)*inst(l)-paid(l));
 const active=l=>paid(l)<+l.amount-1;
 const color=p=>p<34?'var(--er)':p<67?'var(--wn)':'var(--ok)';
 function donut(a,b){const p=b?Math.min(100,a/b*100):0,r=60,c=2*Math.PI*r;
-return `<svg viewBox="0 0 160 160" width="190"><circle cx="80" cy="80" r="${r}" fill="none" stroke="var(--ln)" stroke-width="16"/><circle cx="80" cy="80" r="${r}" fill="none" stroke="${color(p)}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 80 80)"/><text x="80" y="70" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">${Math.round(p)}%</text><text x="80" y="90" text-anchor="middle" font-size="11" fill="currentColor">שולם ${fm(a)}</text><text x="80" y="106" text-anchor="middle" font-size="11" fill="currentColor">נותר ${fm(b-a)}</text></svg>`}
+return `<svg viewBox="0 0 160 160" width="190" style="max-width:100%"><circle cx="80" cy="80" r="${r}" fill="none" stroke="var(--ln)" stroke-width="16"/><circle cx="80" cy="80" r="${r}" fill="none" stroke="${color(p)}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 80 80)"/><text x="80" y="70" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">${Math.round(p)}%</text><text x="80" y="90" text-anchor="middle" font-size="11" fill="currentColor">שולם ${fm(a)}</text><text x="80" y="106" text-anchor="middle" font-size="11" fill="currentColor">נותר ${fm(b-a)}</text></svg>`}
+
+/* ---------- העדפות תצוגה ונגישות (לכל מכשיר) ---------- */
+const PDEF={theme:'auto',fs:100,br:100,hc:false,nm:false,ul:false,big:false,alo:0};
+let P={...PDEF,...(ld('amb_pref')||{})};
+function applyP(){const h=document.documentElement;if(P.theme=='auto')h.removeAttribute('data-theme');else h.dataset.theme=P.theme;h.style.fontSize=P.fs+'%';h.style.setProperty('--br',P.br/100);
+h.classList.toggle('dim',P.br!=100);['hc','nm','ul','big'].forEach(k=>h.classList.toggle(k,!!P[k]))}
+function setP(k,v){P[k]=v;sv('amb_pref',P);applyP();const o=$('#pv_'+k);if(o)o.textContent=v+'%';if(k=='alo')idle()}
+applyP();
+let IT=null;function idle(){clearTimeout(IT);if(U&&+P.alo>0)IT=setTimeout(()=>{if(U){logout();loginV('נותקת אוטומטית לאחר חוסר פעילות')}},P.alo*60000)}
+['click','keydown','touchstart'].forEach(e=>document.addEventListener(e,idle,{passive:true}));
 
 /* ---------- כניסה ובעלים ---------- */
 let ROLE=null,IMP=false,OWNU=null;
@@ -60,24 +119,91 @@ const US=()=>{const u=ld('amb_users')||{};for(const k in u)if(typeof u[k]=='stri
 const hasOwner=()=>Object.values(US()).some(x=>x.role=='owner');
 const okU=u=>/^[^'"<>\s]+$/.test(u);
 const defD=g=>({gname:g,base:0,loans:[],lastSel:[],tasks:[]});
-function loginV(msg){const no=!hasOwner();$('#app').innerHTML=`<div id="login" class="card"><h2>AMB מערכות</h2><p style="color:var(--mu);margin-top:-8px">${no?'הגדרה ראשונית – יצירת חשבון בעלים':'ניהול גמ״ח – כניסה'}</p><label>דוא״ל / שם משתמש</label><input id="u"><label style="margin-top:8px">סיסמה</label><input id="p" type="password"><p style="color:var(--er)">${msg||''}</p><div class="bar"><button onclick="${no?'setupOwner()':'login()'}">${no?'יצירת חשבון בעלים':'כניסה'}</button></div><small style="color:var(--mu)">גרסת אב-טיפוס: הנתונים נשמרים בדפדפן זה בלבד.</small></div>`}
+const ME=()=>IMP?OWNU:U;
+const canAdmin=()=>!!D&&(ROLE=='gemach'||IMP||(ROLE=='sub'&&PERM=='full'));
+const PERMS={full:'מנהל מלא',edit:'עריכה (ללא הגדרות)',view:'צפייה בלבד'};
+function loginV(msg){U=null;supUnmount();const no=!hasOwner();$('#app').innerHTML=`<div id="login" class="card"><h2>AMB מערכות</h2><p style="color:var(--mu);margin-top:-8px">${no?'הגדרה ראשונית – יצירת חשבון בעלים':'ניהול גמ״ח – כניסה'}</p><label for="u">דוא״ל / שם משתמש</label><input id="u" autocomplete="username" autocapitalize="off"><label for="p" style="margin-top:8px">סיסמה</label><input id="p" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')${no?'setupOwner()':'login()'}"><p style="color:var(--er)" role="alert">${esc(msg||'')}</p><div class="bar"><button onclick="${no?'setupOwner()':'login()'}">${no?'יצירת חשבון בעלים':'כניסה'}</button></div><small style="color:var(--mu)">גרסת אב-טיפוס: הנתונים נשמרים בדפדפן זה בלבד.</small>${typeof APP!='undefined'&&APP&&!standalone()?'<p><button class="g" onclick="installApp()">📱 התקנה כאפליקציה</button></p>':''}</div>`}
 function login(){const us=US(),u=$('#u').value.trim().toLowerCase();if(us[u]&&us[u].h==hs($('#p').value))start(u);else loginV('פרטי כניסה שגויים')}
 function setupOwner(){const u=$('#u').value.trim().toLowerCase(),p=$('#p').value;if(!okU(u)||p.length<4)return loginV('נא למלא שם משתמש (ללא רווחים) וסיסמה של 4 תווים לפחות');const us=US();if(us[u]){if(us[u].h!=hs(p))return loginV('שם המשתמש קיים. להפיכה לבעלים הזן את הסיסמה הישנה שלו, או בחר שם אחר');us[u].role='owner';us[u].gname='בעלים'}else us[u]={h:hs(p),role:'owner',gname:'בעלים'};sv('amb_users',us);start(u)}
-function start(u){const x=US()[u];U=u;ROLE=x.role;IMP=false;if(ROLE=='owner'){OWNU=u;D=null;view='own'}else{D=ld('amb_d_'+u)||defD(x.gname);view='dash'}shell()}
-function logout(){U=null;D=null;ROLE=null;IMP=false;loginV()}
-function shell(){const ow=ROLE=='owner'&&!IMP;const nv=ow?[['own','ניהול גמחים']]:[['dash','לוח בקרה'],['list','לווים'],['bank','בנק'],['coll','גבייה ותשלומים'],['tasks','משימות'],['set','הגדרות']];if(ow)view='own';
-const hb='background:rgba(255,255,255,.18);border:1px solid #fff8';
-$('#app').innerHTML=`<header><div><b>AMB מערכות</b><small>ניהול גמ״ח · ${ow?'ניהול בעלים':esc(D.gname)}</small></div><div class="bar" style="margin:0">${IMP?`<button style="${hb}" onclick="exitG()">← חזרה לניהול בעלים</button>`:''}<button style="${hb}" onclick="logout()">יציאה</button></div></header><nav>${nv.map(n=>`<button class="${view==n[0]?'on':'g'}" onclick="go('${n[0]}')">${n[1]}</button>`).join('')}</nav><main id="m"></main>`;
-$('#m').innerHTML=({own:ownV,dash,list,card,status,bank:bankV,coll,tasks:tasksV,set})[view]()}
-const go=v=>{view=v;shell()};const openL=(id,v='card')=>{pre=null;sel=id;view=v;shell()};
+function start(u){const us=US(),x=us[u];U=u;ROLE=x.role;IMP=false;PERM='full';AIM=[];
+if(ROLE=='owner'){OWNU=u;D=null;DK=null;view='own'}
+else if(ROLE=='sub'){const pg=us[x.parent];if(!pg)return loginV('הגמ״ח של משתמש זה אינו קיים עוד');DK=x.parent;PERM=x.perm||'view';D=ld('amb_d_'+DK)||defD(pg.gname);view='dash'}
+else{DK=u;D=ld('amb_d_'+u)||defD(x.gname);view='dash'}idle();shell()}
+function logout(){unsub('');MY=[];TM={};TH=[];PEND=[];IBS=null;U=null;D=null;DK=null;ROLE=null;IMP=false;PERM='full';supOpen=false;loginV()}
+function shell(){const ow=ROLE=='owner'&&!IMP;
+const nv=ow?[['own','ניהול גמחים'],['inbox','פניות לקוחות'],['set','הגדרות']]:[['dash','לוח בקרה'],['ai','צ׳אט חכם'],['list','לווים'],['bank','בנק'],['coll','גבייה ותשלומים'],['tasks','משימות'],['set','הגדרות']];
+if(ow&&!['own','inbox','set'].includes(view))view='own';
+const hb='background:rgba(255,255,255,.18);border:1px solid #fff8';const who=ROLE=='sub'?' · '+esc(US()[U]?.name||U)+' ('+PERMS[PERM]+')':'';
+$('#app').innerHTML=`<header><div><b>AMB מערכות</b><small>ניהול גמ״ח · ${ow?'ניהול בעלים':esc(D.gname)}${who}</small></div><div class="bar" style="margin:0">${IMP?`<button style="${hb}" onclick="exitG()">← חזרה לניהול בעלים</button>`:''}<button style="${hb}" onclick="logout()">יציאה</button></div></header><nav aria-label="תפריט ראשי">${nv.map(n=>`<button class="${view==n[0]?'on':'g'}" onclick="go('${n[0]}')">${n[1]}${n[0]=='inbox'?'<span id="ibc"></span>':''}</button>`).join('')}</nav><main id="m"></main>`;
+document.body.classList.toggle('v-ai',view=='ai');
+$('#m').innerHTML=({own:ownV,inbox:inboxV,dash,ai:aiV,list,card,status,bank:bankV,coll,tasks:tasksV,set})[view]();
+if(ow)supUnmount();else if(IMP)supUnmount();else supMount();chatRender();if(view=='ai')aiScroll()}
+const go=v=>{view=v;shell();window.scrollTo(0,0)};const openL=(id,v='card')=>{pre=null;sel=id;view=v;shell();window.scrollTo(0,0)};
 function ownV(){const us=US(),g=Object.entries(us).filter(e=>e[1].role=='gemach');
-return `<div class="card"><h3>הוספת גמ״ח חדש</h3><div class="grid"><div><label>שם הגמ״ח</label><input id="ng"></div><div><label>שם משתמש / מייל</label><input id="nu"></div><div><label>סיסמה</label><input id="np"></div></div><button onclick="addG()">הוספה</button></div>
-<div class="card tw"><h3>הגמחים שלי (${g.length})</h3><table><tr><th>שם</th><th>משתמש</th><th>הלוואות</th><th>מזומן</th><th></th></tr>${g.map(([u,x],i)=>{const d=ld('amb_d_'+u)||defD(x.gname);return `<tr><td>${esc(x.gname)}</td><td>${esc(u)}</td><td>${d.loans.length}</td><td>${fm(cashOf(d))}</td><td><button onclick="enterG('${u}')">כניסה</button> <input id="rp${i}" placeholder="סיסמה חדשה" style="width:130px"> <button class="g" onclick="resetP('${u}',${i})">איפוס</button> <button class="g" onclick="delG('${u}')">מחיקה</button></td></tr>`}).join('')||'<tr><td colspan="5">עדיין לא נוספו גמחים</td></tr>'}</table></div>`}
+return `<div class="card"><h3>הוספת גמ״ח חדש</h3><div class="grid"><div><label>שם הגמ״ח</label><input id="ng"></div><div><label>שם משתמש / מייל</label><input id="nu" autocapitalize="off"></div><div><label>סיסמה</label><input id="np"></div></div><button onclick="addG()">הוספה</button></div>
+<div class="card tw"><h3>הגמחים שלי (${g.length})</h3><table><tr><th>שם</th><th>משתמש</th><th>הלוואות</th><th>מזומן</th><th>משתמשים נוספים</th><th></th></tr>${g.map(([u,x],i)=>{const d=ld('amb_d_'+u)||defD(x.gname),ns=Object.values(us).filter(s=>s.role=='sub'&&s.parent==u).length;return `<tr><td>${esc(x.gname)}</td><td>${esc(u)}</td><td>${d.loans.length}</td><td>${fm(cashOf(d))}</td><td>${ns}</td><td><button onclick="enterG('${esc(u)}')">כניסה</button> <input id="rp${i}" placeholder="סיסמה חדשה" style="width:130px"> <button class="g" onclick="resetP('${esc(u)}',${i})">איפוס</button> <button class="g" onclick="delG('${esc(u)}')">מחיקה</button></td></tr>`}).join('')||'<tr><td colspan="6">עדיין לא נוספו גמחים</td></tr>'}</table></div>`}
 function addG(){const g=$('#ng').value.trim(),u=$('#nu').value.trim().toLowerCase(),p=$('#np').value;if(!g||!okU(u)||p.length<4)return alert('נא למלא שם גמ״ח, שם משתמש (ללא רווחים) וסיסמה של 4 תווים לפחות');const us=US();if(us[u])return alert('שם המשתמש תפוס');us[u]={h:hs(p),role:'gemach',gname:g};sv('amb_users',us);sv('amb_d_'+u,defD(g));shell()}
-function enterG(u){IMP=true;U=u;D=ld('amb_d_'+u)||defD(US()[u].gname);view='dash';shell()}
-function exitG(){IMP=false;U=OWNU;D=null;view='own';shell()}
+function enterG(u){IMP=true;U=u;DK=u;PERM='full';AIM=[];D=ld('amb_d_'+u)||defD(US()[u].gname);view='dash';shell()}
+function exitG(){unsub('g');MY=[];IMP=false;U=OWNU;D=null;DK=null;view='own';shell()}
 function resetP(u,i){const p=$('#rp'+i).value;if(p.length<4)return alert('סיסמה: 4 תווים לפחות');const us=US();us[u].h=hs(p);sv('amb_users',us);alert('הסיסמה עודכנה')}
-function delG(u){if(!confirm('למחוק את הגמ״ח וכל הנתונים שלו? אי אפשר לשחזר.'))return;const us=US();delete us[u];sv('amb_users',us);sv('amb_d_'+u,null);shell()}
+function delG(u){if(!confirm('למחוק את הגמ״ח, המשתמשים הנוספים שלו וכל הנתונים שלו? אי אפשר לשחזר.'))return;const us=US();delete us[u];for(const k in us)if(us[k].role=='sub'&&us[k].parent==u)delete us[k];sv('amb_users',us);sv('amb_d_'+u,null);shell()}
+
+/* ---------- צ'אט שירות לקוחות (גמ"ח ↔ מנהל המערכת) ----------
+   שרת: כל משתמש Claude כותב רק לשיחה שלו – support/<מזהה>/msgs. רק מנהל (בעל הדף/עורך) קורא את כל השיחות.
+   ללא שרת (אפליקציה עצמאית/בדיקה מקומית): נשמר בדפדפן בלבד. */
+let CDB=null,UID=null,MSGS=[],MY=[],TH=[],TM={},PEND=[],supOpen=false,IBS=null,CST='טוען…',SUBS={};
+const okM=m=>m&&typeof m.tx=='string'&&(m.fr=='g'||m.fr=='o')&&isFinite(+m.t);
+const ERRS={invalid_argument:'אין הרשאת כתיבה – יש לשתף את הדף עם משתמש זה ברמת "משתתף" (Contributor) לפחות',not_granted:'הגישה לשרת לא אושרה בתצוגה זו',quota_exceeded:'נגמר המקום בשרת',resource_exhausted:'יותר מדי פעולות – נסה שוב בעוד רגע',unavailable:'אין חיבור לשרת כרגע – נסה שוב',revoked:'הגישה לדף בוטלה'};
+const errTx=e=>ERRS[e&&e.code]||('שגיאה: '+((e&&(e.code||e.message))||'לא ידועה'));
+function initChat(){MSGS=(ld('amb_chat')||[]).filter(okM);
+window.addEventListener('storage',e=>{if(e.key=='amb_chat'&&!CDB){MSGS=(ld('amb_chat')||[]).filter(okM);chatRender()}});
+const loc=()=>{CST='מצב מקומי – ההודעות נשמרות במכשיר זה בלבד';chatRender()};
+if(!window.claude||!claude.use)return loc();
+Promise.all([claude.use('db'),claude.use('user')]).then(async([db,us])=>{const id=us?await us.id():null;
+if(!db||!id){CST=db?'כדי להתכתב יש להיכנס לחשבון Claude':'מצב מקומי – ההודעות נשמרות במכשיר זה בלבד';return chatRender()}
+CDB=db;UID=id;CST='מחובר';chatSync();chatRender()}).catch(loc)}
+function sub1(k,ref,fn){if(SUBS[k])return;SUBS[k]=ref.onSnapshot(fn,e=>{delete SUBS[k];CST=errTx(e);chatRender()})}
+function unsub(pfx){for(const k in SUBS)if(k.startsWith(pfx)){try{SUBS[k]()}catch(e){}delete SUBS[k]}}
+const msgsOf=s=>s.docs.map(d=>({id:d.id,...(d.data()||{})})).filter(okM).sort((a,b)=>a.t-b.t);
+function chatSync(){if(!CDB)return;const own=ROLE=='owner'&&!IMP;
+if(DK&&!own)sub1('g',CDB.collection('support/'+UID+'/msgs'),s=>{MY=msgsOf(s);PEND=PEND.filter(p=>p.st=='err'||!MY.some(m=>m.id==p.id));chatRender()});
+if(own){sub1('t',CDB.collection('support'),s=>{TH=s.docs.map(d=>({uid:d.id,...(d.data()||{})})).filter(t=>isFinite(+t.last)).sort((a,b)=>b.last-a.last);chatRender()});
+if(IBS&&!SUBS['m:'+IBS]){unsub('m:');const k=IBS;sub1('m:'+k,CDB.collection('support/'+k+'/msgs'),s=>{TM[k]=msgsOf(s);PEND=PEND.filter(p=>p.st=='err'||!TM[k].some(m=>m.id==p.id));chatRender()})}}}
+async function chatSend(th,fr,tx){tx=String(tx||'').trim().slice(0,2000);if(!tx)return;const m={fr,by:ME()||'',g:DK||'',gn:String((D&&D.gname)||'').slice(0,80),tx,t:Date.now()};
+if(!CDB){MSGS.push({id:uid(),...m,g:fr=='g'?DK:th});sv('amb_chat',MSGS);return chatRender()}
+const id=Date.now().toString(36)+uid(),p={id,th,...m,st:'⏳'};PEND.push(p);chatRender();
+try{await CDB.collection('support/'+th+'/msgs').doc(id).set(m);
+const meta={last:m.t,lastFr:fr,lastTx:tx.slice(0,80)};if(fr=='g'){meta.g=DK;meta.gn=m.gn;meta.by=m.by}
+const tr=CDB.doc('support/'+th);try{await tr.update(meta)}catch(e){await tr.set(meta)}
+p.st='✓'}catch(e){p.st='err';p.err=errTx(e)}chatRender()}
+function retry(id){const p=PEND.find(x=>x.id==id);if(!p)return;PEND=PEND.filter(x=>x!==p);chatSend(p.th,p.fr,p.tx)}
+const tm=t=>new Date(+t).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const fmtTx=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+const msgH=(list,mine)=>list.map(m=>`<div class="mb ${m.fr==mine?'me':'ot'}"${m.st=='err'?' style="background:var(--er)"':''}>${fmtTx(m.tx)}<small>${m.fr=='o'?'מנהל המערכת':esc(m.by||m.gn)} · ${tm(m.t)}${m.st&&m.st!='err'?' · '+m.st:''}</small>${m.st=='err'?`<small>⚠ לא נשלח: ${esc(m.err)} · <a href="#" style="color:#fff" onclick="retry('${m.id}');return false">שליחה שוב</a></small>`:''}</div>`).join('');
+const rdGet=k=>ld('amb_rd_'+k)||0;
+function supMount(){if(!DK)return;if(!$('#sup')){const d=document.createElement('div');d.id='sup';document.body.appendChild(d)}
+const s=$('#sup');s.classList.toggle('open',supOpen);s.innerHTML=`${supOpen?`<div id="supP" role="dialog" aria-label="שירות לקוחות"><div class="hd"><div><b>שירות לקוחות</b><br><small style="opacity:.85" id="supSt"></small></div><button onclick="supT()" aria-label="סגירה">✕</button></div><div class="msgs" id="supM"></div><div class="in"><input id="supI" placeholder="כתוב הודעה…" onkeydown="if(event.key=='Enter')supS()" aria-label="הודעה"><button onclick="supS()">שליחה</button></div></div>`:''}<button id="supB" onclick="supT()" aria-label="שירות לקוחות">💬 <span class="t">שירות לקוחות</span><span id="supC"></span></button>`;
+if(supOpen)setTimeout(()=>{const i=$('#supI');if(i&&matchMedia('(min-width:761px)').matches)i.focus()},50)}
+function supUnmount(){const s=$('#sup');if(s)s.remove()}
+const supT=()=>{supOpen=!supOpen;supMount();chatRender()};
+const supS=()=>{const i=$('#supI');chatSend(UID,'g',i.value);i.value='';i.focus()};
+const myList=()=>CDB?[...MY,...PEND.filter(p=>p.th==UID&&!MY.some(m=>m.id==p.id))]:MSGS.filter(m=>m.g==DK);
+function chatRender(){chatSync();const own=ROLE=='owner'&&!IMP;
+const sm=$('#supM');if(sm&&DK){sm.innerHTML=`<div class="mb ot">שלום! כאן אפשר לכתוב ישירות למנהל המערכת – שאלות, תקלות או בקשות. נשיב בהקדם.<small>AMB מערכות</small></div>`+msgH(myList(),'g');sm.scrollTop=sm.scrollHeight;sv('amb_rd_'+DK,Date.now())}
+const ss=$('#supSt');if(ss)ss.textContent=CDB?'פנייה ישירה למנהל המערכת · מחובר':CST;
+const sc=$('#supC');if(sc&&DK){const n=myList().filter(m=>m.fr=='o'&&m.t>rdGet(DK)).length;sc.innerHTML=n&&!supOpen?`<span class="badge">${n}</span>`:''}
+if(own){const th=threads(),n=th.reduce((a,t)=>a+t.un,0),c=$('#ibc');if(c)c.innerHTML=n?`<span class="badge">${n}</span>`:'';
+if(view=='inbox'&&$('#ibl')){if(!IBS&&th.length){IBS=th[0].k;chatSync()}
+$('#ibst').textContent=CDB?'מחובר – הודעות מתעדכנות בזמן אמת. כל גמ״ח רואה רק את השיחה שלו.':CST;
+$('#ibl').innerHTML=th.map(t=>`<div class="${t.k==IBS?'on':''}" onclick="IBS='${esc(t.k)}';chatRender()"><b>${esc(t.gn)}</b> ${t.un&&t.k!=IBS?`<span class="badge">${t.un}</span>`:''}<br><small style="color:var(--mu)">${esc(t.lastTx)}</small><br><small style="color:var(--mu)">${tm(t.last)}</small></div>`).join('')||'<p style="color:var(--mu)">אין פניות עדיין</p>';
+const tt=$('#ibt');if(IBS){const l=CDB?[...(TM[IBS]||[]),...PEND.filter(p=>p.th==IBS&&!(TM[IBS]||[]).some(m=>m.id==p.id))]:MSGS.filter(m=>m.g==IBS);tt.innerHTML=msgH(l,'o')||'<p style="color:var(--mu)">טוען…</p>';tt.scrollTop=tt.scrollHeight;
+const r=ld('amb_rd_o')||{};r[IBS]=Date.now();sv('amb_rd_o',r);const t=th.find(x=>x.k==IBS);$('#ibh').textContent=t?'שיחה עם '+t.gn:''}else tt.innerHTML='<p style="color:var(--mu)">בחר שיחה</p>'}}}
+function threads(){const r=ld('amb_rd_o')||{},us=US(),nm=(g,gn)=>(us[g]&&us[g].gname)||gn||g||'גמ״ח';
+if(CDB)return TH.map(t=>({k:t.uid,gn:nm(t.g,t.gn),last:+t.last,lastTx:String(t.lastTx||''),un:t.lastFr=='g'&&+t.last>(r[t.uid]||0)?1:0}));
+const m={};MSGS.forEach(x=>{const t=m[x.g]=m[x.g]||{k:x.g,gn:x.g,un:0,last:0,lastTx:''};if(x.fr=='g'){t.gn=x.gn||x.g;if(x.t>(r[x.g]||0))t.un++}if(x.t>=t.last){t.last=x.t;t.lastTx=x.tx.slice(0,40)}});
+return Object.values(m).map(t=>({...t,gn:nm(t.k,t.gn)})).sort((a,b)=>b.last-a.last)}
+function inboxV(){return `<div class="card"><h3>פניות שירות לקוחות</h3><p id="ibst" style="color:var(--mu);margin-top:-6px;font-size:13px"></p><div class="ibw"><div id="ibl" class="ibl"></div><div class="ibr"><b id="ibh"></b><div id="ibt" class="msgs" style="margin-top:6px"></div><div class="bar" style="margin:8px 0 0;flex-wrap:nowrap"><input id="ibi" placeholder="כתוב תשובה…" style="max-width:none" onkeydown="if(event.key=='Enter')ibSend()"><button onclick="ibSend()">שליחה</button></div></div></div></div>`}
+function ibSend(){if(!IBS)return alert('בחר שיחה');const i=$('#ibi');chatSend(IBS,'o',i.value);i.value='';i.focus()}
 
 /* ---------- לוח בקרה ---------- */
 const T=()=>D.tasks=D.tasks||[];
@@ -87,30 +213,103 @@ const m=[];if(!l.tz)m.push('ת״ז');if(!l.email)m.push('מייל');if(!l.childT
 if(m.length)a.push(['w',`חסרים פרטים אצל ${n}: ${m.join(', ')}`,l.id,'miss']);
 if(active(l)&&late(l))a.push(['w',`${n} בפיגור – שולם ${fm(paid(l))} מתוך ${fm(due(l)*inst(l))} שנדרשו עד היום`,l.id,'late'])});
 T().filter(t=>!t.done&&t.date<=today()).forEach(t=>a.push([t.date<today()?'e':'w',`${t.kind||'משימה'}: ${esc(t.title)} (${t.date})`,'','task']));return a}
-function mailHref(){const ae=D.ae||{},al=alerts().filter(a=>ae[a[3]]!==false);const b=al.map(a=>'• '+a[1].replace(/&amp;/g,'&')).join('\n');return 'mailto:'+D.email+'?subject='+encodeURIComponent('AMB – התראות '+D.gname+' '+today())+'&body='+encodeURIComponent(b.slice(0,1500))}
+function mailHref(){const ae=D.ae||{},al=alerts().filter(a=>ae[a[3]]!==false);const b=al.map(a=>'• '+a[1].replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'")).join('\n');return 'mailto:'+D.email+'?subject='+encodeURIComponent('AMB – התראות '+D.gname+' '+today())+'&body='+encodeURIComponent(b.slice(0,1500))}
 function cashOf(d){return d.base-d.loans.reduce((a,l)=>a+(l.old?0:+l.amount),0)+d.loans.reduce((a,l)=>a+(l.pays||[]).filter(p=>!p.ret&&!(l.old&&p.src=='יבוא')).reduce((x,p)=>x+ +p.amount,0),0)}
 function rh(el,l,v){const g=el.ownerSVGElement;g.querySelector('.c1').textContent=l||g.dataset.l;g.querySelector('.c2').textContent=v||g.dataset.v}
 function ring(ttl,segs,l0,v0){const r=62,C=2*Math.PI*r,t=segs.reduce((a,x)=>a+x.v,0);let o=0;
 const arcs=t?segs.filter(x=>x.v>0).map(x=>{const n=C*x.v/t,e=`<circle class="seg" cx="90" cy="90" r="${r}" fill="none" stroke="${x.c}" stroke-width="20" stroke-dasharray="${n} ${C-n}" stroke-dashoffset="${-o}" transform="rotate(-90 90 90)" onmouseover="rh(this,'${x.l} ('+Math.round(${x.v/t*100})+'%)','${fm(x.v)}')" onmouseout="rh(this)"><title>${x.l}: ${fm(x.v)}</title></circle>`;o+=n;return e}).join(''):'';
 return `<div class="card hv rc"><h3>${ttl}</h3><svg viewBox="0 0 180 180" width="100%" style="max-width:220px" data-l="${l0}" data-v="${v0}"><circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--ln)" stroke-width="20"/>${arcs}<text class="c1" x="90" y="84" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">${l0}</text><text class="c2" x="90" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="currentColor">${v0}</text></svg><div class="lg">${segs.map(x=>`<span><i style="background:${x.c}"></i>${x.l}</span>`).join('')}</div></div>`}
-function dash(){const ac=D.loans.filter(active),tot=D.loans.reduce((a,l)=>a+ +l.amount,0),pd=D.loans.reduce((a,l)=>a+paid(l),0),out=tot-pd,cash=cashOf(D);
-const mo=today().slice(0,7),mc=D.loans.reduce((a,l)=>a+(l.pays||[]).filter(p=>!p.ret&&p.date.startsWith(mo)).reduce((x,p)=>x+ +p.amount,0),0),exp=ac.reduce((a,l)=>a+inst(l),0),al=alerts();
-return `<div class="grid"><div class="tile t1 hv"><span>לווים פעילים</span><b>${new Set(ac.map(l=>l.tz||l.id)).size}</b></div><div class="tile t2 hv"><span>הלוואות פעילות</span><b>${ac.length}</b></div><div class="tile t3 hv"><span>הוחזר עד היום</span><b>${fm(pd)}</b></div><div class="tile t4 hv"><span>התראות</span><b>${al.length}</b></div></div>
+function stats(){const ac=D.loans.filter(active),tot=D.loans.reduce((a,l)=>a+ +l.amount,0),pd=D.loans.reduce((a,l)=>a+paid(l),0),mo=today().slice(0,7);
+return {ac,tot,pd,out:tot-pd,cash:cashOf(D),mc:D.loans.reduce((a,l)=>a+(l.pays||[]).filter(p=>!p.ret&&p.date.startsWith(mo)).reduce((x,p)=>x+ +p.amount,0),0),exp:ac.reduce((a,l)=>a+inst(l),0)}}
+function dash(){const {ac,pd,out,cash,mc,exp}=stats(),al=alerts();
+return `<div class="grid tiles"><div class="tile t1 hv"><span>לווים פעילים</span><b>${new Set(ac.map(l=>l.tz||l.id)).size}</b></div><div class="tile t2 hv"><span>הלוואות פעילות</span><b>${ac.length}</b></div><div class="tile t3 hv"><span>הוחזר עד היום</span><b>${fm(pd)}</b></div><div class="tile t4 hv"><span>התראות</span><b>${al.length}</b></div></div>
 <div class="grid">${ring('מזומן בגמ״ח',[{v:Math.max(0,cash),c:'#16a34a',l:'מזומן זמין'},{v:out,c:'#2563eb',l:'מושקע בהלוואות'}],'מזומן בגמ״ח',fm(cash))}${ring('יתרת חוב',[{v:pd,c:'#16a34a',l:'הוחזר'},{v:out,c:'#dc2626',l:'יתרת חוב'}],'יתרת חוב',fm(out))}${ring('גבייה החודש',[{v:mc,c:'#2563eb',l:'נגבה'},{v:Math.max(0,exp-mc),c:'#bfdbfe',l:'נותר לגבייה'}],'נגבה החודש',fm(mc))}</div>
 ${D.bankLast?`<p><span class="tag">דף בנק אחרון: ${esc(D.bankLast)}</span></p>`:'<p><span class="tag">טרם הועלה דף בנק</span></p>'}
 ${D.email&&al.length?`<p><a class="btn" href="${mailHref()}" target="_blank">שלח התראות למייל</a></p>`:''}<div class="card"><h3>התראות (${al.length})</h3>${al.map(a=>`<div class="al ${a[0]}" style="cursor:pointer" onclick="${a[2]?`openL('${a[2]}')`:`go('tasks')`}">${a[1]}</div>`).join('')||'<p style="color:var(--ok)">הכל תקין ✓</p>'}</div>
 ${D.loans.length?'':'<div class="card"><p>המערכת ריקה. אפשר להתחיל עם נתוני הדגמה:</p><button onclick="demo()">טען נתוני הדגמה</button></div>'}`}
 function demo(){const f=[['יעקב','כהן'],['משה','לוי'],['דוד','אברהם'],['שמעון','פרידמן']];f.forEach((x,i)=>D.loans.push({id:uid(),first:x[0],last:x[1],tz:'30000000'+i,email:i%2?'':`a${i}@mail.com`,childName:'שרה',childTz:i?'':'40000000'+i,bank:'12',branch:'600',acct:'12345'+i,start:addM(today(),-3-i),day:10,amount:20000+i*5000,n:20+i*4,hok:i<3,docs:[],pays:[]}));
-D.loans.forEach((l,i)=>{for(let k=1;k<=Math.min(due(l),3-i+1);k++)l.pays.push({date:addM(l.start,k),amount:inst(l),src:'ידני'})});D.base=300000;save();shell()}
+D.loans.forEach((l,i)=>{for(let k=1;k<=Math.min(due(l),3-i+1);k++)l.pays.push({date:addM(l.start,k),amount:inst(l),src:'ידני'})});D.base=300000;if(save())shell()}
+
+/* ---------- לוח סילוקין ודוח גבייה (משמשים גם את הצ'אט החכם) ---------- */
+function sched(l){const n=+l.n||0,a=inst(l),pd=paid(l),r=[];let cum=0;for(let k=1;k<=n;k++){const d=addM(l.start,k);const amt=k==n?Math.round((l.amount-a*(n-1))*100)/100:a;cum+=amt;
+r.push({k,date:d.slice(0,8)+String(l.day||1).padStart(2,'0'),amount:amt,bal:Math.max(0,l.amount-cum),st:pd+1>=cum?'שולם':d<=today()?'בפיגור':'עתידי'})}return r}
+function schedTable(l){const st={'שולם':'var(--ok)','בפיגור':'var(--er)','עתידי':'var(--mu)'};return `<table><tr><th>#</th><th>תאריך</th><th>תשלום</th><th>יתרה אחרי</th><th>סטטוס</th></tr>${sched(l).map(x=>`<tr><td>${x.k}</td><td>${x.date}</td><td>${fm(x.amount)}</td><td>${fm(x.bal)}</td><td style="color:${st[x.st]}">${x.st}</td></tr>`).join('')}</table>`}
+function schedDoc(l){return `<!DOCTYPE html><html dir="rtl" lang="he"><meta charset="utf-8"><title>לוח סילוקין</title><body style="font-family:Arial;max-width:720px;margin:auto;padding:20px"><h2>${esc(D.gname)} – לוח סילוקין</h2><p>${esc(l.first+' '+l.last)} · ת״ז ${esc(l.tz)}${l.childName?' · חתונת '+esc(l.childName):''}<br>סכום ${fm(l.amount)} · ${l.n} תשלומים של ${fm(inst(l))} · ${l.start} → ${endD(l)} · שולם ${fm(paid(l))} · הופק ${today()}</p>${schedTable(l).replace('<table>','<table border="1" cellpadding="6" style="border-collapse:collapse;width:100%">').replace(/color:var\(--ok\)/g,'color:#15803d').replace(/color:var\(--er\)/g,'color:#b91c1c').replace(/color:var\(--mu\)/g,'color:#555')}</body></html>`}
+function collRep(mo){const rows=[];let e=0,c=0,rc=0;D.loans.forEach(l=>{if(!l.start)return;const s=l.start.slice(0,7),en=endD(l).slice(0,7);const inR=mo>s&&mo<=en;
+const ps=(l.pays||[]).filter(p=>p.date.startsWith(mo)),got=ps.filter(p=>!p.ret).reduce((a,p)=>a+ +p.amount,0),rt=ps.filter(p=>p.ret).length;if(!inR&&!got&&!rt)return;
+const ex=inR?inst(l):0;e+=ex;c+=got;rc+=rt;rows.push({l,ex,got,rt})});return {mo,rows,e,c,rc}}
+function collTable(r){return `<table><tr><th>לווה</th><th>צפוי</th><th>נגבה</th><th>הפרש</th><th>חזרו</th></tr>${r.rows.map(x=>`<tr><td>${name(x.l)}</td><td>${fm(x.ex)}</td><td>${fm(x.got)}</td><td style="color:${x.got+1<x.ex?'var(--er)':'var(--ok)'}">${fm(x.got-x.ex)}</td><td>${x.rt||''}</td></tr>`).join('')||'<tr><td colspan="5">אין נתונים לחודש זה</td></tr>'}<tr><th>סה״כ</th><th>${fm(r.e)}</th><th>${fm(r.c)}</th><th>${fm(r.c-r.e)}</th><th>${r.rc||''}</th></tr></table>`}
+const moName=mo=>new Date(mo+'-01').toLocaleDateString('he-IL',{month:'long',year:'numeric'});
+function collDoc(r){return `<!DOCTYPE html><html dir="rtl" lang="he"><meta charset="utf-8"><title>דוח גבייה</title><body style="font-family:Arial;max-width:720px;margin:auto;padding:20px"><h2>${esc(D.gname)} – דוח גבייה ${moName(r.mo)}</h2><p>צפוי ${fm(r.e)} · נגבה ${fm(r.c)} · אחוז גבייה ${r.e?Math.round(r.c/r.e*100):0}% · הופק ${today()}</p>${collTable(r).replace('<table>','<table border="1" cellpadding="6" style="border-collapse:collapse;width:100%">').replace(/var\(--er\)/g,'#b91c1c').replace(/var\(--ok\)/g,'#15803d')}</body></html>`}
+function remMail(l,kind,note){const nm=l.first+' '+l.last,la=lateAmt(l);let s,b;
+if(kind=='late'){s=`תזכורת: פיגור בתשלום ההלוואה – ${D.gname}`;b=`שלום ${nm},\n\nלפי הרישומים שלנו קיים פיגור בתשלומי ההלוואה מגמ״ח ${D.gname}${l.childName?' (חתונת '+l.childName+')':''}.\nסכום הפיגור עד היום: ${fm(la)}.\nהחזר חודשי: ${fm(inst(l))}.\n\nנודה להסדרת התשלום בהקדם. אם התשלום כבר בוצע – אנא התעלם מהודעה זו.`}
+else if(kind=='upcoming'){s=`תזכורת: תשלום קרוב – ${D.gname}`;b=`שלום ${nm},\n\nזוהי תזכורת ידידותית שתשלום ההלוואה הבא בסך ${fm(inst(l))} ייגבה ב-${l.day||1} לחודש.\nנא לוודא שיש כיסוי בחשבון.`}
+else{s=`הודעה מגמ״ח ${D.gname}`;b=`שלום ${nm},\n`}
+if(note)b+='\n\n'+note;b+=`\n\nבברכה,\n${D.gname}`;return {to:l.email||'',s,b,href:'mailto:'+encodeURIComponent(l.email||'')+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b)}}
+
+/* ---------- צ'אט חכם – פקודות למערכת ---------- */
+let AIM=[],AIB=false,SMP,AX={},AIAB=null;
+const smp=()=>SMP||(SMP=(window.claude&&claude.use?claude.use('sample'):Promise.resolve(null)).catch(()=>null));
+const SUG=['תביא לי לוח סילוקין של יעקב כהן','תן לי דוח גבייה של החודש הקודם','מי בפיגור כרגע?','שלח מייל תזכורת לכל מי שבפיגור','סיכום מצב הגמ״ח'];
+function aiV(){return `<div class="card cv"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin-bottom:4px">צ׳אט חכם</h3><button class="g supin" onclick="supT()">💬 שירות לקוחות</button></div><p style="color:var(--mu);margin:0 0 6px;font-size:13px">כתוב בקשה בשפה חופשית – המערכת תבצע ותציג את התוצאה.</p><div class="msgs" id="aiM" aria-live="polite">${aiMsgs()}</div><div class="chips">${SUG.map(s=>`<button class="g" onclick="aiAsk(this.textContent)">${esc(s)}</button>`).join('')}</div><div class="in"><textarea id="aiI" placeholder="לדוגמה: תביא לי לוח סילוקין של משה לוי" aria-label="פקודה" onkeydown="if(event.key=='Enter'&&!event.shiftKey){event.preventDefault();aiAsk()}"></textarea><button id="aiS" onclick="aiAsk()">${AIB?'עצור':'שליחה'}</button></div></div>`}
+function aiMsgs(){const w=`<div class="mb ot">שלום! אני העוזר של המערכת. אפשר לבקש ממני למשל: לוח סילוקין של לווה, דוח גבייה לחודש, רשימת לווים בפיגור, הכנת מייל תזכורת, רישום תשלום או הוספת משימה.<small>עוזר המערכת</small></div>`;
+return w+AIM.map(m=>`<div class="mb ${m.r=='u'?'me':'ot'}">${m.tx?fmtTx(m.tx):m.r=='b'&&AIB?'<i>חושב…</i>':''}${(m.cards||[]).map(c=>`<div class="card tw">${c}</div>`).join('')}</div>`).join('')}
+function aiDraw(){const m=$('#aiM');if(!m)return;m.innerHTML=aiMsgs();aiScroll();const b=$('#aiS');if(b)b.textContent=AIB?'עצור':'שליחה'}
+const aiScroll=()=>{const m=$('#aiM');if(m)m.scrollTop=m.scrollHeight};
+const axPv=k=>{const x=AX[k];if(x)pv(x.t,x.h,x.fn,x.h)};
+function axPay(k){const x=AX[k];if(!x||x.done)return;const l=L(x.id);if(!l)return;l.pays.push({date:x.date,amount:x.amount,src:'ידני'});if(!save())return;x.done=true;const b=$('#ax_'+k);if(b){b.disabled=true;b.textContent='נרשם ✓'}}
+function addCard(cur,h){(cur.cards=cur.cards||[]).push(h);aiDraw()}
+function loanBrief(l){return {loan_id:l.id,name:l.first+' '+l.last,child:l.childName||'',tz:l.tz||'',email:l.email||'',amount:Math.round(l.amount),paid:Math.round(paid(l)),late_amount:Math.round(lateAmt(l)),monthly:Math.round(inst(l)),start:l.start,end:endD(l),active:active(l),late:active(l)&&late(l)}}
+function findLoans(q){q=String(q||'').trim();if(!q)return[];const t=q.replace(/[״"׳']/g,'');let r=D.loans.filter(l=>t.includes((l.first+' '+l.last).trim())||(l.first+' '+l.last).includes(t));if(!r.length)r=D.loans.filter(l=>l.tz&&t.includes(l.tz));
+if(!r.length)r=D.loans.filter(l=>l.last&&t.includes(l.last));if(!r.length)r=D.loans.filter(l=>l.first&&t.includes(l.first));return r}
+const getL=i=>L(i.loan_id)||findLoans(i.name)[0];
+const prevMo=()=>addM(today().slice(0,7)+'-15',-1).slice(0,7);
+function tools(cur){return [
+{name:'find_borrowers',description:'חיפוש לווים/הלוואות לפי שם, שם משפחה או ת״ז. מחזיר loan_id לשימוש בכלים אחרים.',inputSchema:{type:'object',properties:{query:{type:'string'}},required:['query']},execute:i=>findLoans(i.query).map(loanBrief)},
+{name:'list_loans',description:'רשימת הלוואות לפי מסנן: all, active, late (בפיגור), missing (חסרים פרטים)',inputSchema:{type:'object',properties:{filter:{type:'string',enum:['all','active','late','missing']}}},execute:i=>{const f=i.filter||'all';return D.loans.filter(l=>f=='all'||(f=='active'&&active(l))||(f=='late'&&active(l)&&late(l))||(f=='missing'&&(!l.tz||!l.email||!l.childTz))).map(loanBrief)}},
+{name:'dashboard_summary',description:'סיכום מצב הגמ״ח: מזומן, יתרת חוב, גבייה החודש, מספר התראות',execute:()=>{const s=stats();return {active_loans:s.ac.length,cash:Math.round(s.cash),outstanding:Math.round(s.out),repaid:Math.round(s.pd),collected_this_month:Math.round(s.mc),expected_monthly:Math.round(s.exp),alerts:alerts().length,open_tasks:T().filter(t=>!t.done).length}}},
+{name:'show_amortization_schedule',description:'מציג למשתמש לוח סילוקין מלא של הלוואה (טבלה עם הדפסה/הורדה)',inputSchema:{type:'object',properties:{loan_id:{type:'string'},name:{type:'string'}}},execute:i=>{const l=getL(i);if(!l)throw new Error('הלוואה לא נמצאה');const k=uid();AX[k]={t:'לוח סילוקין – '+l.first+' '+l.last,h:schedDoc(l),fn:'לוח_סילוקין_'+l.first+'_'+l.last+'.html'};
+addCard(cur,`<b>לוח סילוקין – ${name(l)}</b><p style="margin:4px 0">${fm(l.amount)} · ${l.n} תשלומים · שולם ${fm(paid(l))}</p><div style="max-height:320px;overflow:auto">${schedTable(l)}</div><div class="bar" style="margin:8px 0 0"><button onclick="axPv('${k}')">הדפסה / הורדה</button><button class="g" onclick="openL('${l.id}','status')">למצב החשבון</button></div>`);const s=sched(l);return {shown:true,payments:s.length,paid_count:s.filter(x=>x.st=='שולם').length,late_count:s.filter(x=>x.st=='בפיגור').length}}},
+{name:'show_collection_report',description:'מציג דוח גבייה לחודש (YYYY-MM): צפוי מול נגבה לכל לווה',inputSchema:{type:'object',properties:{month:{type:'string',description:'YYYY-MM'}},required:['month']},execute:i=>{const mo=/^\d{4}-\d{2}$/.test(i.month||'')?i.month:prevMo(),r=collRep(mo),k=uid();AX[k]={t:'דוח גבייה – '+moName(mo),h:collDoc(r),fn:'דוח_גבייה_'+mo+'.html'};
+addCard(cur,`<b>דוח גבייה – ${moName(mo)}</b><p style="margin:4px 0">צפוי ${fm(r.e)} · נגבה ${fm(r.c)} · ${r.e?Math.round(r.c/r.e*100):0}%</p><div style="max-height:320px;overflow:auto">${collTable(r)}</div><div class="bar" style="margin:8px 0 0"><button onclick="axPv('${k}')">הדפסה / הורדה</button></div>`);return {month:mo,expected:Math.round(r.e),collected:Math.round(r.c),returned:r.rc,rows:r.rows.length}}},
+{name:'prepare_reminder_email',description:'מכין מייל ללווה (late=פיגור, upcoming=תשלום קרוב, general=כללי) ומציג כפתור לשליחה דרך תוכנת המייל של המשתמש',inputSchema:{type:'object',properties:{loan_id:{type:'string'},name:{type:'string'},kind:{type:'string',enum:['late','upcoming','general']},note:{type:'string'}}},execute:i=>{const l=getL(i);if(!l)throw new Error('הלוואה לא נמצאה');const m=remMail(l,i.kind||'late',String(i.note||'').slice(0,500));
+addCard(cur,`<b>מייל ל${esc(l.first+' '+l.last)}</b> ${m.to?`<span class="tag">${esc(m.to)}</span>`:'<span class="tag" style="color:var(--er)">אין כתובת מייל בכרטיס</span>'}<p style="margin:6px 0"><b>${esc(m.s)}</b></p><div style="white-space:pre-wrap;font-size:13px;border:1px solid var(--ln);border-radius:8px;padding:8px">${esc(m.b)}</div><div class="bar" style="margin:8px 0 0">${m.to?`<a class="btn" href="${esc(m.href)}" target="_blank">שליחה במייל</a>`:`<button class="g" onclick="openL('${l.id}')">הוספת מייל בכרטיס</button>`}</div>`);return {prepared:true,has_email:!!m.to,late_amount:Math.round(lateAmt(l))}}},
+{name:'propose_payment',description:'מציע רישום תשלום ללווה. המשתמש מאשר בלחיצה – לא נרשם עד האישור',inputSchema:{type:'object',properties:{loan_id:{type:'string'},name:{type:'string'},amount:{type:'number'},date:{type:'string',description:'YYYY-MM-DD'}},required:['amount']},execute:i=>{const l=getL(i);if(!l)throw new Error('הלוואה לא נמצאה');const a=+i.amount;if(!(a>0))throw new Error('סכום לא תקין');const d=/^\d{4}-\d{2}-\d{2}$/.test(i.date||'')?i.date:today(),k=uid();AX[k]={id:l.id,amount:a,date:d};
+addCard(cur,`<b>רישום תשלום</b><p style="margin:4px 0">${name(l)} · ${fm(a)} · ${d}</p><button id="ax_${k}" onclick="axPay('${k}')">אישור רישום</button>`);return {awaiting_user_confirmation:true}}},
+{name:'add_task',description:'הוספת משימה או תזכורת',inputSchema:{type:'object',properties:{title:{type:'string'},date:{type:'string',description:'YYYY-MM-DD'},loan_id:{type:'string'}},required:['title']},execute:i=>{const t={id:uid(),title:String(i.title).slice(0,200),date:/^\d{4}-\d{2}-\d{2}$/.test(i.date||'')?i.date:today(),kind:'משימה',loan:L(i.loan_id)?i.loan_id:'',done:false};T().push(t);if(!save())throw new Error('אין הרשאת עריכה');return {added:true}}},
+{name:'open_screen',description:'מציג כפתור מעבר למסך: dash, list, bank, coll, tasks, set, card (כרטיס לווה), status (מצב חשבון)',inputSchema:{type:'object',properties:{screen:{type:'string'},loan_id:{type:'string'}},required:['screen']},execute:i=>{const nm={dash:'לוח בקרה',list:'לווים',bank:'בנק',coll:'גבייה ותשלומים',tasks:'משימות',set:'הגדרות',card:'כרטיס לווה',status:'מצב חשבון'};const s=nm[i.screen]?i.screen:'dash',l=L(i.loan_id);
+addCard(cur,`<button onclick="${(s=='card'||s=='status')&&l?`openL('${l.id}','${s}')`:`go('${s=='card'||s=='status'?'list':s}')`}">מעבר ל${nm[s]}</button>`);return {shown:true}}}]}
+function aiPrompt(){return `אתה העוזר המובנה של מערכת "AMB מערכות" לניהול גמ״ח בשם "${D.gname}". היום ${today()} (החודש הנוכחי ${today().slice(0,7)}, החודש הקודם ${prevMo()}).
+הנחיות: ענה תמיד בעברית, בקצרה ובשפה מכובדת. השתמש בכלים כדי לבצע כל בקשה – לעולם אל תמציא נתונים, שמות או סכומים. כשמבקשים לוח סילוקין/דוח – הצג אותו בכלי המתאים ואל תעתיק את כל הטבלה לטקסט. אם יש כמה הלוואות לאותו שם – הצג את כולן או שאל איזו. "שלח מייל" = prepare_reminder_email (המשתמש לוחץ לשליחה). רישום תשלום – רק דרך propose_payment. ענה רק על נושאים הקשורים לניהול הגמ״ח. אם לא נמצא לווה – אמור זאת.`}
+async function aiAsk(q){if(AIB){if(AIAB)AIAB.abort();return}const inp=$('#aiI');q=String(q??inp.value).trim();if(!q)return;if(inp)inp.value='';
+const hist=AIM.filter(m=>m.tx).slice(-10).map(m=>({role:m.r=='u'?'user':'assistant',content:m.tx}));AIM.push({r:'u',tx:q});const cur={r:'b',tx:'',cards:[]};AIM.push(cur);AIB=true;aiDraw();
+const s=await smp();let ok=false;if(s){AIAB=new AbortController();try{const msgs=[...hist,{role:'user',content:aiPrompt()+'\n\nבקשת המשתמש: '+q}];while(msgs.length&&msgs[0].role!='user')msgs.shift();
+const r=await s(msgs,{tools:tools(cur),cache:false,signal:AIAB.signal,onText:u=>{cur.tx=u.text;aiDraw()}});cur.tx=r.text||cur.tx||'בוצע.';ok=true}
+catch(e){if(e&&e.code=='cancelled'){cur.tx=cur.tx||'הופסק.';ok=true}else if(e&&e.code=='not_granted'){SMP=Promise.resolve(null)}else if(e&&e.code=='rate_limited'){cur.tx='יותר מדי בקשות ברגע זה – נסה שוב בעוד דקה.';ok=true}}}
+if(!ok){cur.cards=[];cur.tx=localCmd(q,cur)}AIB=false;AIAB=null;aiDraw()}
+/* מצב מקומי – כשהעוזר החכם אינו זמין, פענוח פקודות בסיסי */
+function localCmd(q,cur){const ex=n=>{const t=tools(cur).find(x=>x.name==n);return t.execute.bind(t)};const ls=findLoans(q);
+const pick=()=>{if(!ls.length)return null;return ls};
+if(/סילוקין|לוח תשלומים/.test(q)){const l=pick();if(!l)return 'לא מצאתי לווה בשם הזה. נסה לכתוב שם פרטי ושם משפחה.';l.forEach(x=>ex('show_amortization_schedule')({loan_id:x.id}));return l.length>1?`נמצאו ${l.length} הלוואות – מוצגות כולן:`:'הנה לוח הסילוקין:'}
+if(/דוח גבי|דו״ח גבי|דו"ח גבי/.test(q)){const m=q.match(/(\d{4})-(\d{1,2})/);const mo=m?m[1]+'-'+m[2].padStart(2,'0'):/הנוכחי|החודש(?! הקודם| שעבר| האחרון)/.test(q)&&!/קודם|שעבר|אחרון/.test(q)?today().slice(0,7):prevMo();ex('show_collection_report')({month:mo});return 'הנה דוח הגבייה ל'+moName(mo)+':'}
+if(/מייל|תזכורת|הודעה/.test(q)){const kind=/קרוב|לפני/.test(q)?'upcoming':/פיגור|איחור|מאחר/.test(q)?'late':'general';
+if(/כל|כולם/.test(q)){const lt=D.loans.filter(l=>active(l)&&late(l));if(!lt.length)return 'אין כרגע לווים בפיגור ✓';lt.forEach(l=>ex('prepare_reminder_email')({loan_id:l.id,kind:'late'}));return `הוכנו ${lt.length} מיילי תזכורת – לחץ "שליחה במייל" בכל אחד:`}
+const l=pick();if(!l)return 'לא מצאתי לווה בשם הזה.';ex('prepare_reminder_email')({loan_id:l[0].id,kind});return 'הכנתי את המייל – לחץ "שליחה במייל" כדי לשלוח:'}
+if(/פיגור|מאחר|איחור/.test(q)){const lt=D.loans.filter(l=>active(l)&&late(l));if(!lt.length)return 'אין כרגע לווים בפיגור ✓';return 'לווים בפיגור:\n'+lt.map(l=>`• **${l.first} ${l.last}**${l.childName?' ('+l.childName+')':''} – פיגור ${fm(lateAmt(l))}`).join('\n')}
+if(/סיכום|מצב|מזומן|יתרה/.test(q)&&!ls.length){const s=ex('dashboard_summary')();return `סיכום ${D.gname}:\n• הלוואות פעילות: ${s.active_loans}\n• מזומן בגמ״ח: ${fm(s.cash)}\n• יתרת חוב: ${fm(s.outstanding)}\n• נגבה החודש: ${fm(s.collected_this_month)} מתוך ${fm(s.expected_monthly)}\n• התראות: ${s.alerts}`}
+if(/תשלום|שילם/.test(q)&&ls.length){const a=num((q.match(/[\d,]{2,}/)||[''])[0]);if(!a)return 'ציין סכום, לדוגמה: רשום תשלום 1,000 ליעקב כהן';ex('propose_payment')({loan_id:ls[0].id,amount:a});return 'נא לאשר את הרישום:'}
+if(ls.length){ls.forEach(l=>ex('open_screen')({screen:'status',loan_id:l.id}));return ls.map(l=>{const b=loanBrief(l);return `**${b.name}**${b.child?' ('+b.child+')':''}: הלוואה ${fm(b.amount)}, שולם ${fm(b.paid)}${b.late?', בפיגור '+fm(b.late_amount):''}`}).join('\n')}
+return 'לא הבנתי את הבקשה. אפשר לבקש: לוח סילוקין של [שם], דוח גבייה של החודש הקודם, מי בפיגור, שלח תזכורת ל[שם], סיכום מצב.'}
 
 /* ---------- רשימה + אקסל ---------- */
-function list(){return `<div class="bar"><input id="q" placeholder="חיפוש שם / ת״ז" oninput="rows()"><button onclick="openL('new')">+ לווה חדש</button><button class="g" onclick="exportX()">ייצוא לאקסל</button><button class="g" onclick="tmpl()">תבנית אקסל</button><label class="btn g" style="color:var(--pr);display:inline-block">ייבוא מאקסל (גם הלוואות קיימות)<input type="file" accept=".xlsx,.xls,.csv" hidden onchange="importX(this.files[0])"></label></div><p style="color:var(--mu);font-size:13px">הוספת הלוואה קיימת: מורידים את התבנית, ממלאים את כל הפרטים וגם "מספר תשלומים ששולמו עד כה" (או "סכום ששולם עד כה"), ומייבאים.</p><div class="card tw"><table><thead><tr><th>שם</th><th>ת״ז</th><th>סכום</th><th>שולם</th><th>סיום</th><th>הו״ק</th><th></th></tr></thead><tbody id="rows">${rowsH('')}</tbody></table></div>`}
+function list(){return `<div class="bar tb"><div class="tbt">חיפוש ופעולות</div><input id="q" placeholder="חיפוש שם / ת״ז" oninput="rows()"><button onclick="openL('new')">+ לווה חדש</button><button class="g" onclick="exportX()">ייצוא לאקסל</button><button class="g" onclick="tmpl()">תבנית אקסל</button><label class="btn g" style="display:inline-block">ייבוא מאקסל (גם הלוואות קיימות)<input type="file" accept=".xlsx,.xls,.csv" hidden onchange="importX(this.files[0])"></label></div><p style="color:var(--mu);font-size:13px">הוספת הלוואה קיימת: מורידים את התבנית, ממלאים את כל הפרטים וגם "מספר תשלומים ששולמו עד כה" (או "סכום ששולם עד כה"), ומייבאים.</p><div class="card tw"><table><thead><tr><th>שם</th><th>ת״ז</th><th>סכום</th><th>שולם</th><th>סיום</th><th>הו״ק</th><th></th></tr></thead><tbody id="rows">${rowsH('')}</tbody></table></div>`}
 function rowsH(q){return D.loans.filter(l=>(l.first+l.last+l.tz).includes(q)).map(l=>{const p=l.amount?Math.round(paid(l)/l.amount*100):0;return `<tr class="c" onclick="openL('${l.id}')"><td>${name(l)}</td><td>${esc(l.tz)}</td><td>${fm(l.amount)}</td><td style="color:${color(p)}">${p}%</td><td>${endD(l)}</td><td>${l.hok?'✓':''}</td><td>${active(l)&&late(l)?'<span class="tag" style="color:var(--er)">בפיגור</span>':''}</td></tr>`}).join('')||'<tr><td colspan="7">אין לווים</td></tr>'}
 const rows=()=>{$('#rows').innerHTML=rowsH($('#q').value)};
 const HD=['שם','שם משפחה','מספר זהות','מייל','טלפון','שם הילד','ת״ז הילד','בנק','סניף','חשבון','תאריך התחלה','יום חיוב','סכום הלוואה','מספר תשלומים','הו״ק (כן/לא)','מספר תשלומים ששולמו עד כה','סכום ששולם עד כה'];
 const KS=['first','last','tz','email','phone','childName','childTz','bank','branch','acct','start','day','amount','n','hok'];
-async function dl(name,data){try{if(typeof claude!='undefined'&&claude.use){const d=await claude.use('downloads');await d.save({filename:name,data});return}}catch(e){if(e&&e.code=='declined')return}
-try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){alert('לא ניתן להוריד קובץ בתצוגה זו')}}
+function dlBlob(name,data){const b=data instanceof Blob?data:new Blob([data]),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+async function dl(name,data){let d=null;try{d=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
+if(!d){try{return dlBlob(name,data)}catch(e){return alert('לא ניתן להוריד קובץ בתצוגה זו')}}try{await d.save({filename:name,data})}catch(e){if(e&&e.code=='declined')return;alert('לא ניתן להוריד קובץ בתצוגה זו')}}
 const WAIT='ספריית האקסל עדיין נטענת, נסה שוב בעוד רגע';
 const wb=rows=>{if(!window.XLSX){alert(WAIT);throw 0}const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(rows),'לווים');w.Workbook={Views:[{RTL:true}]};return XLSX.write(w,{type:'array',bookType:'xlsx'})};
 const tmpl=()=>dl('תבנית_לווים.xlsx',wb([HD,['ישראל','ישראלי','123456789','a@mail.com','050-0000000','רחל','987654321','12','600','123456','2025-06-10',10,30000,30,'כן',5,'']]));
@@ -123,27 +322,36 @@ if(!/^\d{4}-\d{2}-\d{2}$/.test(l.start)||!l.amount){bad++;return}
 if(D.loans.some(o=>o.tz&&o.tz==l.tz&&o.childTz==l.childTz&&o.start==l.start)){dup++;return}
 const cnt=+String(x[15]||0).replace(/,/g,'')||0,am=+String(x[16]||'').replace(/,/g,'')||0;
 if(am>0){l.pays.push({date:today(),amount:am,src:'יבוא'});l.old=true}else if(cnt>0){for(let k=1;k<=Math.min(cnt,l.n);k++)l.pays.push({date:addM(l.start,k),amount:inst(l),src:'יבוא'});l.old=true}
-D.loans.push(l);c++});save();alert('יובאו '+c+' הלוואות'+(dup?` · ${dup} כבר קיימות`:'')+(bad?` · ${bad} שורות לא תקינות (תאריך/סכום)`:''));shell()};r.readAsArrayBuffer(f)}
+D.loans.push(l);c++});if(!save())return shell();alert('יובאו '+c+' הלוואות'+(dup?` · ${dup} כבר קיימות`:'')+(bad?` · ${bad} שורות לא תקינות (תאריך/סכום)`:''));shell()};r.readAsArrayBuffer(f)}
 
 /* ---------- כרטיס לווה ---------- */
 const CITIES='ירושלים,תל אביב-יפו,חיפה,ראשון לציון,פתח תקווה,אשדוד,נתניה,באר שבע,בני ברק,חולון,רמת גן,אשקלון,רחובות,בת ים,בית שמש,כפר סבא,הרצליה,חדרה,מודיעין-מכבים-רעות,מודיעין עילית,לוד,רמלה,רעננה,נצרת,רהט,קריית גת,נהריה,אילת,עפולה,טבריה,צפת,נס ציונה,קריית אונו,גבעתיים,הוד השרון,אור יהודה,יבנה,אלעד,ביתר עילית,ערד,דימונה,נתיבות,שדרות,אופקים,קריית מלאכי,קריית שמונה,קריית ביאליק,קריית מוצקין,קריית אתא,קריית ים,כרמיאל,עכו,נשר,טירת כרמל,מגדל העמק,יקנעם עילית,זכרון יעקב,פרדס חנה-כרכור,גן יבנה,גדרה,קריית עקרון,מזכרת בתיה,אור עקיבא,בנימינה,עומר,מיתר,להבים,ירוחם,מצפה רמון,בית שאן,תל מונד,שוהם,גני תקווה,אזור,יהוד-מונוסון,קדימה-צורן,כפר יונה,ראש העין,רמת השרון,גבעת שמואל,מבשרת ציון,מעלה אדומים,אפרת,אריאל,עמנואל,אום אל-פחם,טירה,טייבה,כפר קאסם'.split(',');
 const STREETS='הרצל,ויצמן,ז׳בוטינסקי,בן גוריון,רוטשילד,ביאליק,הנביאים,יפו,העצמאות,הגפן,הזית,הרימון,התמר,השקמה,האלון,הברוש,האורן,הדקל,הרב קוק,רש״י,הרמב״ם,שדרות ירושלים,שדרות רבין,בן יהודה,אלנבי,הנשיא,המלך דוד,האר״י,בר אילן,חזון איש,רבי עקיבא,שמואל הנביא,אבן גבירול,הנחל,הפרחים,הגבורה,התקווה,הבנים,הרצוג,סוקולוב,אחד העם,הלל,שמאי,המעפילים,הפלמ״ח,הגליל,הנגב,הארזים,הרכבת,הבעש״ט,רבי מאיר,רבי יהודה הנשיא,החזון איש,שדרות הציונות,דרך חברון'.split(',');
 const PF=['first','last','tz','email','phone','city','street','house','bank','branch','acct','arev1','arev1tz','arev1ph','arev2','arev2tz','arev2ph'];
-const F=[['first','שם'],['last','שם משפחה'],['tz','מספר זהות'],['email','דוא״ל','email'],['phone','טלפון'],['city','עיר','text','cities'],['street','רחוב','text','streets'],['house','מס׳ בית'],['bank','בנק (מס׳)'],['branch','סניף'],['acct','חשבון'],['arev1','ערב א׳ – שם'],['arev1tz','ערב א׳ – ת״ז'],['arev1ph','ערב א׳ – טלפון'],['arev2','ערב ב׳ – שם'],['arev2tz','ערב ב׳ – ת״ז'],['arev2ph','ערב ב׳ – טלפון'],['childName','שם הילד'],['childTz','ת״ז הילד'],['start','תאריך תחילת הלוואה','date'],['day','יום חיוב בחודש','number'],['amount','סכום הלוואה','money'],['n','מספר תשלומים','number']];
+const F=[['first','שם'],['last','שם משפחה'],['tz','מספר זהות'],['email','דוא״ל','email'],['phone','טלפון','tel'],['city','עיר','text','cities'],['street','רחוב','text','streets'],['house','מס׳ בית'],['bank','בנק (מס׳)'],['branch','סניף'],['acct','חשבון'],['arev1','ערב א׳ – שם'],['arev1tz','ערב א׳ – ת״ז'],['arev1ph','ערב א׳ – טלפון','tel'],['arev2','ערב ב׳ – שם'],['arev2tz','ערב ב׳ – ת״ז'],['arev2ph','ערב ב׳ – טלפון','tel'],['childName','שם הילד'],['childTz','ת״ז הילד'],['start','תאריך תחילת הלוואה','date'],['day','יום חיוב בחודש','number'],['amount','סכום הלוואה','money'],['n','מספר תשלומים','number']];
 let pre=null;
 const cm=v=>v?(+v).toLocaleString('en-US'):'';
 const num=v=>+String(v).replace(/,/g,'')||0;
 function mi(el){const v=el.value.replace(/[^\d.]/g,''),q=v.split('.');el.value=v?Number(q[0]||0).toLocaleString('en-US')+(q.length>1?'.'+q[1]:''):''}
 function dls(){const cs=[...CITIES],st=[...STREETS];D.loans.forEach(l=>{if(l.city&&!cs.includes(l.city))cs.push(l.city);if(l.street&&!st.includes(l.street))st.push(l.street)});const o=a=>a.map(c=>`<option value="${esc(c)}">`).join('');return `<datalist id="cities">${o(cs)}</datalist><datalist id="streets">${o(st)}</datalist>`}
 function addLoan(id){const l=L(id);pre={docs:[],pays:[]};PF.forEach(k=>pre[k]=l[k]);pre.hok=l.hok;sel='new';view='card';shell()}
+const FK=Object.fromEntries(F.map(f=>[f[0],f]));
+function fld(k,l,lb){const f=FK[k],mo=f[2]=='money',nu=f[2]=='number',ty=mo||nu?'text':f[2]||'text';return `<div><label for="f_${k}">${lb||f[1]}</label><input id="f_${k}" type="${ty}" ${mo?'inputmode="numeric" oninput="mi(this);calc()"':nu?'inputmode="numeric" oninput="calc()"':f[2]=='tel'?'inputmode="tel" oninput="calc()"':'oninput="calc()"'} ${f[3]?`list="${f[3]}" autocomplete="off"`:''} value="${mo?cm(l[k]):esc(l[k])}"></div>`}
+const grp=(l,ks)=>`<div class="grid">${ks.map(k=>fld(k,l)).join('')}</div>`;
 function card(){const nw=sel=='new',l=nw?(pre||{docs:[],pays:[]}):L(sel);if(!l){view='list';return list()}
-const others=nw?[]:D.loans.filter(x=>x.tz&&x.tz==l.tz&&x.id!=l.id);
-return `<div class="bar"><button class="g" onclick="go('list')">← חזרה</button>${nw?'':`<button onclick="openL('${l.id}','status')">מצב חשבון</button><button class="g" onclick="addLoan('${l.id}')">+ הלוואה נוספת (ילד אחר)</button><button class="r" onclick="delL('${l.id}')">מחיקה</button>`}</div><div class="card"><h3>${nw?(pre&&pre.first?'הלוואה נוספת ל'+esc(pre.first+' '+(pre.last||''))+' – נא למלא שם ות״ז של הילד':'לווה / הלוואה חדשה'):name(l)}</h3>${others.length?`<p>הלוואות נוספות של לווה זה: ${others.map(o=>`<a href="#" onclick="openL('${o.id}');return false">${esc(o.childName||'ללא שם')} (${fm(o.amount)})</a>`).join(' · ')}</p>`:''}<div class="grid">${F.map(f=>{const mo=f[2]=='money';return `<div><label>${f[1]}</label><input id="f_${f[0]}" type="${mo?'text':f[2]||'text'}" ${mo?'inputmode="numeric" oninput="mi(this);calc()"':'oninput="calc()"'} ${f[3]?`list="${f[3]}" autocomplete="off"`:''} value="${mo?cm(l[f[0]]):esc(l[f[0]])}"></div>`}).join('')}<div><label>תאריך סיום (מחושב)</label><input id="endd" readonly value="${endD(l)}"></div><div><label>החזר חודשי</label><input id="mon" readonly value="${l.n?fm(inst(l)):''}"></div></div>${dls()}<p><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" id="f_hok" ${l.hok?'checked':''}> יש הו״ק לגמ״ח</label></p><button onclick="saveL('${nw?'new':l.id}')">שמירה</button></div>
+const others=nw?[]:D.loans.filter(x=>x.tz&&x.tz==l.tz&&x.id!=l.id),sb=`<button onclick="saveL('${nw?'new':l.id}')">שמירה</button>`;
+const arev=(n,t)=>`<div><h4 style="margin-top:0">${t}</h4>${fld('arev'+n,l,'שם מלא')}${fld('arev'+n+'tz',l,'מספר זהות')}${fld('arev'+n+'ph',l,'טלפון')}</div>`;
+return `<div class="bar"><button class="g" onclick="go('list')">← חזרה</button>${nw?'':`<button onclick="openL('${l.id}','status')">מצב חשבון</button><button class="g" onclick="addLoan('${l.id}')">+ הלוואה נוספת (ילד אחר)</button><button class="r" onclick="delL('${l.id}')">מחיקה</button>`}${sb}</div>
+<h2 style="margin:4px 0 12px">${nw?(pre&&pre.first?'הלוואה נוספת ל'+esc(pre.first+' '+(pre.last||''))+' – נא למלא שם ות״ז של הילד':'לווה / הלוואה חדשה'):name(l)}</h2>${others.length?`<p>הלוואות נוספות של לווה זה: ${others.map(o=>`<a href="#" onclick="openL('${o.id}');return false">${esc(o.childName||'ללא שם')} (${fm(o.amount)})</a>`).join(' · ')}</p>`:''}
+<div class="card fs"><h3>👤 פרטי הלווה</h3><h4>פרטים אישיים</h4>${grp(l,['first','last','tz','phone','email'])}<h4>כתובת</h4>${grp(l,['city','street','house'])}<h4>חשבון בנק</h4>${grp(l,['bank','branch','acct'])}${dls()}</div>
+<div class="card fs"><h3>💰 פרטי ההלוואה</h3><h4>עבור</h4>${grp(l,['childName','childTz'])}<h4>סכום ותשלומים</h4><div class="grid">${['amount','n','start','day'].map(k=>fld(k,l)).join('')}<div><label>החזר חודשי</label><input id="mon" readonly value="${l.n?fm(inst(l)):''}"></div><div><label>תאריך סיום (מחושב)</label><input id="endd" readonly value="${endD(l)}"></div></div><label class="row"><input type="checkbox" id="f_hok" ${l.hok?'checked':''}> יש הוראת קבע (הו״ק) לגמ״ח</label></div>
+<div class="card fs"><h3>🤝 ערבים</h3><div class="arv">${arev(1,'ערב א׳')}${arev(2,'ערב ב׳')}</div></div>
+<p>${sb}</p>
 ${nw?'':`<div class="card"><h3>מסמכים</h3>${(l.docs||[]).map((d,i)=>`<div class="bar"><a href="${d.data}" download="${esc(d.name)}" target="_blank">${esc(d.name)}</a><button class="g" onclick="delDoc('${l.id}',${i})">הסרה</button></div>`).join('')||'<p style="color:var(--mu)">אין מסמכים</p>'}<label class="btn g">+ הוספת מסמך (ת״ז, בקשת הלוואה…)<input type="file" hidden onchange="addDoc('${l.id}',this.files[0])"></label></div>`}`}
 function calc(){const a=num($('#f_amount').value),n=+$('#f_n').value,s=$('#f_start').value;$('#endd').value=s&&n?addM(s,n):'';$('#mon').value=n?fm(a/n):''}
-function saveL(id){const l=id=='new'?{id:uid(),docs:[],pays:[]}:L(id);F.forEach(f=>{const v=$('#f_'+f[0]).value.trim();l[f[0]]=f[2]=='number'?+v:f[2]=='money'?num(v):v});l.hok=$('#f_hok').checked;if(!l.first||!l.amount||!l.n||!l.start)return alert('נא למלא שם, סכום, תשלומים ותאריך התחלה');if(id=='new')D.loans.push(l);
-if(l.tz)D.loans.forEach(x=>{if(x.id!=l.id&&x.tz==l.tz)PF.forEach(k=>x[k]=l[k])});save();openL(l.id)}
-function delL(id){if(confirm('למחוק את ההלוואה?')){D.loans=D.loans.filter(l=>l.id!=id);save();go('list')}}
+function saveL(id){if(PERM=='view')return alert('יש לך הרשאת צפייה בלבד');const l=id=='new'?{id:uid(),docs:[],pays:[]}:L(id);F.forEach(f=>{const v=$('#f_'+f[0]).value.trim();l[f[0]]=f[2]=='number'?+v:f[2]=='money'?num(v):v});l.hok=$('#f_hok').checked;if(!l.first||!l.amount||!l.n||!l.start)return alert('נא למלא שם, סכום, תשלומים ותאריך התחלה');if(id=='new')D.loans.push(l);
+if(l.tz)D.loans.forEach(x=>{if(x.id!=l.id&&x.tz==l.tz)PF.forEach(k=>x[k]=l[k])});if(save())openL(l.id);else shell()}
+function delL(id){if(confirm('למחוק את ההלוואה?')){D.loans=D.loans.filter(l=>l.id!=id);if(save())go('list');else shell()}}
 function addDoc(id,f){if(!f)return;if(f.size>1.5e6)return alert('קובץ גדול מדי באב-טיפוס (עד 1.5MB)');const r=new FileReader();r.onload=e=>{L(id).docs.push({name:f.name,data:e.target.result});save();shell()};r.readAsDataURL(f)}
 function delDoc(id,i){L(id).docs.splice(i,1);save();shell()}
 
@@ -151,10 +359,11 @@ function delDoc(id,i){L(id).docs.splice(i,1);save();shell()}
 function status(){const l=L(sel);if(!l){return list()}
 const grp=comb&&l.tz?D.loans.filter(x=>x.tz==l.tz):[l],amt=grp.reduce((a,x)=>a+ +x.amount,0),pd=grp.reduce((a,x)=>a+paid(x),0),mon=grp.filter(active).reduce((a,x)=>a+inst(x),0);
 const pays=grp.flatMap(x=>(x.pays||[]).map((p,i)=>({...p,l:x,i}))).sort((a,b)=>b.date.localeCompare(a.date));
-return `<div class="bar"><button class="g" onclick="openL('${l.id}')">← לכרטיס</button>${l.tz&&D.loans.filter(x=>x.tz==l.tz).length>1?`<button class="${comb?'on':'g'}" onclick="comb=${!comb};shell()">${comb?'איחוד הלוואות ✓':'איחוד הלוואות'}</button>`:''}<button class="g" onclick="report('${l.id}')">הפקת דוח אישי</button></div>
+return `<div class="bar"><button class="g" onclick="openL('${l.id}')">← לכרטיס</button>${l.tz&&D.loans.filter(x=>x.tz==l.tz).length>1?`<button class="${comb?'on':'g'}" onclick="comb=${!comb};shell()">${comb?'איחוד הלוואות ✓':'איחוד הלוואות'}</button>`:''}<button class="g" onclick="report('${l.id}')">הפקת דוח אישי</button><button class="g" onclick="schedPv('${l.id}')">לוח סילוקין</button></div>
 <div class="card"><h3>מצב חשבון – ${esc(l.first+' '+l.last)}${comb?' (כל ההלוואות)':''}</h3><div class="grid" style="align-items:center"><div style="text-align:center">${donut(pd,amt)}</div><div>${grp.map(x=>`<p><b>${fm(x.amount)}</b> · חתונת ${esc(x.childName||'—')} · ${x.n} תשלומים של ${fm(inst(x))} · ${x.start}→${endD(x)}</p>`).join('')}<p>החזר חודשי כולל: <b>${fm(mon)}</b></p></div></div></div>
 <div class="card tw"><h3>תשלומים</h3><table><tr><th>תאריך</th><th>סכום</th><th>מקור</th>${comb?'<th>הלוואה</th>':''}<th></th></tr>${pays.map(p=>`<tr style="${p.ret?'opacity:.6;text-decoration:line-through':''}"><td>${p.date}</td><td>${fm(p.amount)}</td><td>${esc(p.src||'')}</td>${comb?`<td>${esc(p.l.childName||'')}</td>`:''}<td><button class="g" onclick="ret('${p.l.id}',${p.i})">${p.ret?'בטל חזרה':'סמן כחזר'}</button> <button class="g" onclick="delP('${p.l.id}',${p.i})">מחק</button></td></tr>`).join('')||'<tr><td colspan="5">אין תשלומים</td></tr>'}</table></div>
 <div class="card"><h3>הוספת תשלום</h3><div class="bar"><input id="pd" type="date" value="${today()}"><input id="pa" inputmode="numeric" oninput="mi(this)" placeholder="סכום" value="${cm(Math.round(inst(l)))}"><button onclick="addP('${l.id}')">הוסף</button></div></div>`}
+const schedPv=id=>{const l=L(id);const h=schedDoc(l);pv('לוח סילוקין – '+l.first+' '+l.last,h,'לוח_סילוקין_'+l.first+'_'+l.last+'.html',h)};
 const addP=id=>{const a=num($('#pa').value);if(!a)return;L(id).pays.push({date:$('#pd').value,amount:a,src:'ידני'});save();shell()};
 const ret=(id,i)=>{const p=L(id).pays[i];p.ret=!p.ret;save();shell()};const delP=(id,i)=>{L(id).pays.splice(i,1);save();shell()};
 function report(id){const l=L(id),grp=comb&&l.tz?D.loans.filter(x=>x.tz==l.tz):[l],amt=grp.reduce((a,x)=>a+ +x.amount,0),pd=grp.reduce((a,x)=>a+paid(x),0);
@@ -169,35 +378,74 @@ const am=nums.find(n=>Math.abs(n-inst(l))<1)||nums[0];const dm=t.match(/(\d{1,2}
 bk.items.push({id:l.id,amount:am,date:d,ok:true,dup:(l.pays||[]).some(p=>p.date==d&&Math.abs(p.amount-am)<1)})});$('#bk').innerHTML=bkH()};r.readAsArrayBuffer(f)}
 function bkH(){if(!bk.items.length)return '<div class="card">לא זוהו תשלומים של לווים בקובץ.</div>';
 return `<div class="card tw"><h3>זוהו ${bk.items.length} תשלומים</h3><table><tr><th></th><th>לווה</th><th>תאריך</th><th>סכום</th><th></th></tr>${bk.items.map((x,i)=>`<tr><td><input type="checkbox" ${x.ok&&!x.dup?'checked':''} onchange="bk.items[${i}].ok=this.checked"></td><td>${name(L(x.id))}</td><td>${x.date}</td><td>${fm(x.amount)}</td><td>${x.dup?'<span class="tag">כבר קיים</span>':''}</td></tr>`).join('')}</table><br><button onclick="applyBk()">עדכן כרטיסי לווים</button></div>`}
-function applyBk(){let c=0;bk.items.forEach(x=>{if(x.ok&&!x.dup){L(x.id).pays.push({date:x.date,amount:x.amount,src:'בנק'});c++}});D.bankLast=bk.file;bk=null;save();alert('עודכנו '+c+' תשלומים');go('dash')}
+function applyBk(){let c=0;bk.items.forEach(x=>{if(x.ok&&!x.dup){L(x.id).pays.push({date:x.date,amount:x.amount,src:'בנק'});c++}});D.bankLast=bk.file;if(!save()){bk=null;return shell()}bk=null;alert('עודכנו '+c+' תשלומים');go('dash')}
 
 /* ---------- גבייה ותשלומים ---------- */
 function coll(){const ids=sel instanceof Array?sel:D.lastSel||[];sel=ids;
-return `<div class="card"><h3>גבייה – הכנת קובץ מס״ב</h3><div class="bar"><button class="g" onclick="pick('prev')">כמו חודש קודם</button><button class="g" onclick="pick('hok')">כל בעלי הו״ק</button><button class="g" onclick="pick('none')">נקה בחירה</button></div><div class="tw"><table><tr><th></th><th>לווה</th><th>סכום לחיוב</th><th>בנק</th></tr>${D.loans.filter(active).map(l=>`<tr><td><input type="checkbox" ${ids.includes(l.id)?'checked':''} onchange="tog('${l.id}',this.checked)"></td><td>${name(l)}</td><td>${fm(Math.min(inst(l),l.amount-paid(l)))}</td><td>${l.bank&&l.branch&&l.acct?l.bank+'-'+l.branch+'-'+l.acct:'<span class="tag" style="color:var(--er)">חסר</span>'}</td></tr>`).join('')}</table></div><p>נבחרו ${ids.length} · סה״כ ${fm(ids.reduce((a,i)=>a+Math.min(inst(L(i)),L(i).amount-paid(L(i))),0))}</p><button onclick="masav()">הפקת קובץ מס״ב</button> <small style="color:var(--mu)">הקובץ הוא בפורמט בסיסי – יש להתאים למפרט הרשמי של הבנק/המוסד לפני שימוש.</small></div>
+return `<div class="card"><h3>גבייה – הכנת קובץ מס״ב</h3><div class="bar"><button class="g" onclick="pick('prev')">כמו חודש קודם</button><button class="g" onclick="pick('hok')">כל בעלי הו״ק</button><button class="g" onclick="pick('none')">נקה בחירה</button></div><div class="tw"><table><tr><th></th><th>לווה</th><th>סכום לחיוב</th><th>בנק</th></tr>${D.loans.filter(active).map(l=>`<tr><td><input type="checkbox" ${ids.includes(l.id)?'checked':''} onchange="tog('${l.id}',this.checked)"></td><td>${name(l)}</td><td>${fm(Math.min(inst(l),l.amount-paid(l)))}</td><td>${l.bank&&l.branch&&l.acct?esc(l.bank+'-'+l.branch+'-'+l.acct):'<span class="tag" style="color:var(--er)">חסר</span>'}</td></tr>`).join('')}</table></div><p>נבחרו ${ids.length} · סה״כ ${fm(ids.filter(L).reduce((a,i)=>a+Math.min(inst(L(i)),L(i).amount-paid(L(i))),0))}</p><button onclick="masav()">הפקת קובץ מס״ב</button> <small style="color:var(--mu)">הקובץ הוא בפורמט בסיסי – יש להתאים למפרט הרשמי של הבנק/המוסד לפני שימוש.</small></div>
+<div class="card"><h3>דוח גבייה חודשי</h3><div class="bar"><input id="crm" type="month" value="${prevMo()}" style="max-width:200px"><button class="g" onclick="const r=collRep($('#crm').value||prevMo()),h=collDoc(r);pv('דוח גבייה – '+moName(r.mo),h,'דוח_גבייה_'+r.mo+'.html',h)">הפקת דוח</button></div></div>
 <div class="card"><h3>ביצוע תשלום הלוואה</h3><div class="bar"><select id="pl" style="max-width:300px">${D.loans.filter(active).map(l=>`<option value="${l.id}">${esc(l.first+' '+l.last)} – ${esc(l.childName||'')}</option>`).join('')}</select><input id="pd2" type="date" value="${today()}" style="max-width:160px"><input id="pa2" inputmode="numeric" oninput="mi(this)" placeholder="סכום" style="max-width:140px"><button onclick="pay()">רישום תשלום</button></div></div>`}
 const tog=(id,v)=>{sel=sel.filter(x=>x!=id);if(v)sel.push(id);D.lastSel=sel;save();shell()};
 const pick=m=>{sel=m=='hok'?D.loans.filter(l=>l.hok&&active(l)).map(l=>l.id):m=='prev'?D.loans.filter(l=>active(l)&&(l.pays||[]).some(p=>p.date.slice(0,7)==addM(today(),-1).slice(0,7)&&!p.ret)).map(l=>l.id):[];D.lastSel=sel;save();shell()};
-function masav(){if(!sel.length)return alert('לא נבחרו לווים');const lines=sel.map(L).map(l=>[l.bank,l.branch,l.acct,l.tz,(l.first+' '+l.last),Math.round(Math.min(inst(l),l.amount-paid(l))*100)].join(','));const t='בנק,סניף,חשבון,ת״ז,שם,אגורות\n'+lines.join('\n');pv('תצוגה מקדימה – קובץ גבייה',`<meta charset="utf-8"><body dir="rtl" style="font:14px monospace;white-space:pre-wrap;padding:12px">${esc(t)}</body>`,'masav_'+today()+'.txt',t)}
+function masav(){const s=sel.filter(L);if(!s.length)return alert('לא נבחרו לווים');const lines=s.map(L).map(l=>[l.bank,l.branch,l.acct,l.tz,(l.first+' '+l.last),Math.round(Math.min(inst(l),l.amount-paid(l))*100)].join(','));const t='בנק,סניף,חשבון,ת״ז,שם,אגורות\n'+lines.join('\n');pv('תצוגה מקדימה – קובץ גבייה',`<meta charset="utf-8"><body dir="rtl" style="font:14px monospace;white-space:pre-wrap;padding:12px">${esc(t)}</body>`,'masav_'+today()+'.txt',t)}
 let PV=null;
-function pv(t,html,fn,data){PV={fn,data};const m=document.createElement('div');m.id='mod';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:flex;align-items:center;justify-content:center;padding:14px';m.innerHTML=`<div class="card" style="width:min(820px,100%);max-height:92vh;display:flex;flex-direction:column;margin:0"><h3>${t}</h3><iframe id="pvf" style="flex:1;min-height:55vh;border:1px solid var(--ln);border-radius:8px;background:#fff" srcdoc="${esc(html)}"></iframe><div class="bar" style="margin:12px 0 0"><button onclick="pvDl()">אישור והורדה</button><button class="g" onclick="pvPr()">הדפסה</button><button class="g" onclick="pvX()">סגירה</button></div></div>`;document.body.appendChild(m)}
+function pv(t,html,fn,data){PV={fn,data};pvX();const m=document.createElement('div');m.id='mod';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:flex;align-items:center;justify-content:center;padding:10px';m.innerHTML=`<div class="card" style="width:min(820px,100%);max-height:94vh;display:flex;flex-direction:column;margin:0"><h3>${esc(t)}</h3><iframe id="pvf" title="תצוגה מקדימה" style="flex:1;min-height:55vh;border:1px solid var(--ln);border-radius:8px;background:#fff;width:100%" srcdoc="${esc(html)}"></iframe><div class="bar" style="margin:12px 0 0"><button onclick="pvDl()">אישור והורדה</button><button class="g" onclick="pvPr()">הדפסה</button><button class="g" onclick="pvX()">סגירה</button></div></div>`;document.body.appendChild(m)}
 const pvX=()=>{const m=$('#mod');if(m)m.remove()};
 const pvDl=async()=>{await dl(PV.fn,PV.data);pvX()};
 const pvPr=()=>{try{const f=$('#pvf').contentWindow;f.focus();f.print()}catch(e){alert('הדפסה לא זמינה בתצוגה זו – אפשר להוריד ולהדפיס')}};
-function pay(){const id=$('#pl').value,a=num($('#pa2').value);if(!id||!a)return;L(id).pays.push({date:$('#pd2').value,amount:a,src:'ידני'});save();openL(id,'status')}
+function pay(){const id=$('#pl').value,a=num($('#pa2').value);if(!id||!a)return;L(id).pays.push({date:$('#pd2').value,amount:a,src:'ידני'});if(save())openL(id,'status');else shell()}
 
 /* ---------- משימות ---------- */
 function tasksV(){const td=today(),ts=T().slice().sort((a,b)=>(a.done-b.done)||a.date.localeCompare(b.date)),auto=[],dd=new Date().getDate();
 D.loans.filter(active).forEach(l=>{const df=l.day-dd,n=esc(l.first+' '+l.last);if(l.hok&&df>=0&&df<=3)auto.push(`חיוב הו״ק של ${n} ${df?'בעוד '+df+' ימים':'היום'} (${fm(inst(l))})`);const e=endD(l);if(e&&e>=td&&e<=addM(td,2))auto.push(`ההלוואה של ${n} מסתיימת ב-${e}`)});
 return `<div class="card"><h3>הוספת משימה / תזכורת</h3><div class="bar"><input id="tt" placeholder="מה צריך לעשות?" style="max-width:300px"><input id="td" type="date" value="${td}" style="max-width:160px"><select id="tk" style="max-width:120px"><option>משימה</option><option>תזכורת</option></select><select id="tl" style="max-width:220px"><option value="">ללא לווה</option>${D.loans.map(l=>`<option value="${l.id}">${esc(l.first+' '+l.last)}${l.childName?' – '+esc(l.childName):''}</option>`).join('')}</select><button onclick="addT()">הוספה</button></div></div>
-<div class="card"><h3>המשימות שלי</h3>${ts.map(t=>{const l=t.loan&&L(t.loan);return `<div class="al ${!t.done&&t.date<td?'e':''}" style="display:flex;gap:10px;align-items:center;${t.done?'opacity:.55;text-decoration:line-through':''}"><input type="checkbox" ${t.done?'checked':''} onchange="togT('${t.id}')"><b>${esc(t.title)}</b><span class="tag">${t.kind||'משימה'}</span><span>${t.date}</span>${l?`<a href="#" onclick="openL('${l.id}');return false">${esc(l.first+' '+l.last)}</a>`:''}<button class="g" style="margin-right:auto" onclick="delT('${t.id}')">מחיקה</button></div>`}).join('')||'<p style="color:var(--mu)">אין משימות</p>'}</div>
+<div class="card"><h3>המשימות שלי</h3>${ts.map(t=>{const l=t.loan&&L(t.loan);return `<div class="al ${!t.done&&t.date<td?'e':''}" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;${t.done?'opacity:.55;text-decoration:line-through':''}"><input type="checkbox" ${t.done?'checked':''} onchange="togT('${t.id}')"><b>${esc(t.title)}</b><span class="tag">${esc(t.kind||'משימה')}</span><span>${t.date}</span>${l?`<a href="#" onclick="openL('${l.id}');return false">${esc(l.first+' '+l.last)}</a>`:''}<button class="g" style="margin-right:auto" onclick="delT('${t.id}')">מחיקה</button></div>`}).join('')||'<p style="color:var(--mu)">אין משימות</p>'}</div>
 <div class="card"><h3>תזכורות אוטומטיות</h3>${auto.map(x=>`<div class="al">${x}</div>`).join('')||'<p style="color:var(--mu)">אין תזכורות בימים הקרובים</p>'}</div>`}
 function addT(){const t=$('#tt').value.trim();if(!t)return;T().push({id:uid(),title:t,date:$('#td').value||today(),kind:$('#tk').value,loan:$('#tl').value,done:false});save();shell()}
 const togT=id=>{const t=T().find(x=>x.id==id);t.done=!t.done;save();shell()};const delT=id=>{D.tasks=T().filter(x=>x.id!=id);save();shell()};
+
 /* ---------- הגדרות ---------- */
-function set(){const ae=D.ae||{},ck=(k,t)=>`<label style="display:flex;gap:8px;align-items:center;color:var(--tx);margin:6px 0"><input type="checkbox" id="ae_${k}" ${ae[k]===false?'':'checked'}> ${t}</label>`;
-return `<div class="card"><h3>הגדרות גמ״ח</h3><label>שם הגמ״ח</label><input id="gn" value="${esc(D.gname)}"><label style="margin-top:8px">מזומן בגמ״ח בתחילת העבודה במערכת (₪)</label><input id="gb" inputmode="numeric" oninput="mi(this)" value="${cm(D.base)}"></div>
-<div class="card"><h3>התראות למייל</h3><label>כתובת המייל של הגמ״ח</label><input id="gm" type="email" value="${esc(D.email||'')}"><p>${ck('ret','תשלומים שחזרו')}${ck('late','לווים בפיגור')}${ck('miss','פרטים חסרים')}${ck('task','משימות ותזכורות שהגיע זמנן')}</p><p style="color:var(--mu);font-size:13px">בלוח הבקרה יופיע כפתור "שלח התראות למייל" שפותח הודעה מוכנה בתוכנת המייל שלך. שליחה אוטומטית ברקע, גם כשהמערכת סגורה, דורשת שרת והיא חלק מהשלב הבא.</p></div><button onclick="saveSet()">שמירה</button>
-<div class="card" style="margin-top:14px"><p>כל גמ״ח נכנס עם שם משתמש וסיסמה משלו ורואה רק את הנתונים שלו.</p></div>`}
-function saveSet(){D.gname=$('#gn').value;D.base=num($('#gb').value);D.email=$('#gm').value.trim();D.ae={};['ret','late','miss','task'].forEach(k=>D.ae[k]=$('#ae_'+k).checked);save();shell()}
-loginV();
+function set(){const ad=canAdmin(),ae=(D&&D.ae)||{},ck=(k,t)=>`<label class="row"><input type="checkbox" id="ae_${k}" ${ae[k]===false?'':'checked'}> ${t}</label>`;
+const pc=(k,t)=>`<label class="row"><input type="checkbox" ${P[k]?'checked':''} onchange="setP('${k}',this.checked)"> ${t}</label>`;
+const us=US(),subs=ad?Object.entries(us).filter(([k,x])=>x.role=='sub'&&x.parent==DK):[];
+let h='';
+if(ad)h+=`<div class="card"><h3>הגדרות גמ״ח</h3><div class="sec"><div><label for="gn">שם הגמ״ח</label><input id="gn" value="${esc(D.gname)}"></div><div><label for="gb">מזומן בגמ״ח בתחילת העבודה במערכת (₪)</label><input id="gb" inputmode="numeric" oninput="mi(this)" value="${cm(D.base)}"></div></div></div>
+<div class="card"><h3>התראות למייל</h3><label for="gm">כתובת המייל של הגמ״ח</label><input id="gm" type="email" value="${esc(D.email||'')}"><div>${ck('ret','תשלומים שחזרו')}${ck('late','לווים בפיגור')}${ck('miss','פרטים חסרים')}${ck('task','משימות ותזכורות שהגיע זמנן')}</div><p style="color:var(--mu);font-size:13px">בלוח הבקרה יופיע כפתור "שלח התראות למייל" שפותח הודעה מוכנה בתוכנת המייל שלך. שליחה אוטומטית ברקע, גם כשהמערכת סגורה, דורשת שרת והיא חלק מהשלב הבא.</p><button onclick="saveSet()">שמירת הגדרות הגמ״ח</button></div>
+<div class="card"><h3>משתמשים והרשאות</h3><p style="color:var(--mu);font-size:13px;margin-top:-6px">הוסף אנשי צוות שייכנסו עם שם משתמש וסיסמה משלהם לגמ״ח הזה.</p><div class="tw"><table><tr><th>שם</th><th>שם משתמש</th><th>הרשאה</th><th></th></tr>${subs.map(([k,x],i)=>`<tr><td>${esc(x.name||'')}</td><td>${esc(k)}</td><td><select onchange="subPerm('${esc(k)}',this.value)" style="width:auto">${Object.entries(PERMS).map(([p,t])=>`<option value="${p}" ${x.perm==p?'selected':''}>${t}</option>`).join('')}</select></td><td><input id="sp${i}" placeholder="סיסמה חדשה" style="width:130px"> <button class="g" onclick="subPw('${esc(k)}',${i})">איפוס</button> <button class="g" onclick="subDel('${esc(k)}')">הסרה</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mu)">אין משתמשים נוספים</td></tr>'}</table></div>
+<div class="sec" style="margin-top:12px"><div><label for="sn">שם מלא</label><input id="sn"></div><div><label for="su">שם משתמש / מייל</label><input id="su" autocapitalize="off"></div><div><label for="sp">סיסמה</label><input id="sp" type="password" autocomplete="new-password"></div><div><label for="sr">הרשאה</label><select id="sr">${Object.entries(PERMS).map(([p,t])=>`<option value="${p}" ${p=='edit'?'selected':''}>${t}</option>`).join('')}</select></div></div><p><button onclick="subAdd()">+ הוספת משתמש</button></p>
+<p style="color:var(--mu);font-size:13px"><b>מנהל מלא</b> – הכל כולל הגדרות ומשתמשים · <b>עריכה</b> – עבודה שוטפת ללא הגדרות · <b>צפייה בלבד</b> – רואה נתונים ודוחות, ללא שינויים.</p></div>`;
+h+=`<div class="card"><h3>נגישות ותצוגה</h3><div class="sec"><div><label for="th">ערכת צבעים</label><select id="th" onchange="setP('theme',this.value)"><option value="auto" ${P.theme=='auto'?'selected':''}>אוטומטי (לפי המכשיר)</option><option value="light" ${P.theme=='light'?'selected':''}>בהיר</option><option value="dark" ${P.theme=='dark'?'selected':''}>כהה</option></select></div>
+<div><label for="fs">גודל טקסט – <span id="pv_fs">${P.fs}%</span></label><input id="fs" type="range" min="85" max="150" step="5" value="${P.fs}" oninput="setP('fs',+this.value)"></div>
+<div><label for="brt">בהירות מסך – <span id="pv_br">${P.br}%</span></label><input id="brt" type="range" min="60" max="130" step="5" value="${P.br}" oninput="setP('br',+this.value)"></div></div>
+<div class="sec" style="margin-top:6px"><div>${pc('hc','ניגודיות גבוהה')}${pc('big','כפתורים ושדות גדולים (נוח למגע)')}</div><div>${pc('ul','הדגשת קישורים')}${pc('nm','ביטול אנימציות ותנועה')}</div></div>
+<p><button class="g" onclick="P={...PDEF};sv('amb_pref',P);applyP();shell()">איפוס לברירת מחדל</button></p><p style="color:var(--mu);font-size:13px">הגדרות התצוגה נשמרות במכשיר הזה.</p></div>
+${APP&&!standalone()?`<div class="card"><h3>📱 התקנה כאפליקציה</h3><p style="margin-top:-6px">אפשר להתקין את המערכת על הטלפון, הטאבלט או המחשב ולפתוח אותה מסמל במסך הבית.</p><button id="insB" onclick="installApp()">התקנת האפליקציה</button></div>`:''}<div class="card"><h3>אבטחה וחשבון</h3><p style="margin-top:-6px">מחובר כ: <b>${esc(ME())}</b>${ROLE=='sub'?' · '+PERMS[PERM]:''}</p><div class="sec"><div><label for="op">סיסמה נוכחית</label><input id="op" type="password" autocomplete="current-password"></div><div><label for="np1">סיסמה חדשה</label><input id="np1" type="password" autocomplete="new-password"></div><div><label for="np2">אימות סיסמה חדשה</label><input id="np2" type="password" autocomplete="new-password"></div></div><p><button onclick="chPw()">שינוי סיסמה</button></p>
+<label for="alo">ניתוק אוטומטי לאחר חוסר פעילות</label><select id="alo" style="max-width:260px" onchange="setP('alo',+this.value)">${[[0,'ללא'],[5,'5 דקות'],[15,'15 דקות'],[30,'30 דקות'],[60,'שעה']].map(([v,t])=>`<option value="${v}" ${+P.alo==v?'selected':''}>${t}</option>`).join('')}</select></div>`;
+if(ad){const sz=(()=>{let b=0;try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith('amb_'))b+=(k.length+(localStorage.getItem(k)||'').length)*2}}catch(e){}return b})();
+h+=`<div class="card"><h3>מידע טכני ותחזוקה</h3><div class="tw"><table>
+<tr><td>גרסת מערכת</td><td>${VER}</td></tr><tr><td>אחסון נתונים</td><td>דפדפן מקומי (${(sz/1024).toFixed(1)} KB בשימוש)</td></tr>
+<tr><td>הלוואות / משימות / מסמכים</td><td>${D.loans.length} / ${T().length} / ${D.loans.reduce((a,l)=>a+(l.docs||[]).length,0)}</td></tr>
+<tr><td>צ׳אט שירות לקוחות</td><td>${CDB?'<span style="color:var(--ok)">מחובר – בזמן אמת</span>':'מצב מקומי'}</td></tr>
+<tr><td>דף בנק אחרון</td><td>${esc(D.bankLast||'—')}</td></tr><tr><td>מכשיר</td><td>${innerWidth<761?'טלפון':innerWidth<1100?'טאבלט':'מחשב'} (${innerWidth}px)</td></tr></table></div>
+<div class="bar" style="margin-top:12px"><button onclick="backup()">גיבוי מלא (קובץ)</button><label class="btn g" style="color:var(--pr)">שחזור מגיבוי<input type="file" accept=".json" hidden onchange="restore(this.files[0])"></label><button class="g" onclick="exportX()">ייצוא לווים לאקסל</button><button class="r" onclick="wipe()">מחיקת כל נתוני הגמ״ח</button></div><p style="color:var(--mu);font-size:13px">מומלץ לבצע גיבוי באופן קבוע – הנתונים נשמרים בדפדפן בלבד, וניקוי הדפדפן ימחק אותם.</p></div>`}
+return h}
+function saveSet(){D.gname=$('#gn').value.trim()||D.gname;D.base=num($('#gb').value);D.email=$('#gm').value.trim();D.ae={};['ret','late','miss','task'].forEach(k=>D.ae[k]=$('#ae_'+k).checked);if(!save())return shell();const us=US();if(us[DK]&&us[DK].role=='gemach'){us[DK].gname=D.gname;sv('amb_users',us)}alert('נשמר');shell()}
+function subAdd(){const n=$('#sn').value.trim(),u=$('#su').value.trim().toLowerCase(),p=$('#sp').value,r=$('#sr').value;if(!n||!okU(u)||p.length<4)return alert('נא למלא שם, שם משתמש (ללא רווחים) וסיסמה של 4 תווים לפחות');const us=US();if(us[u])return alert('שם המשתמש תפוס');us[u]={h:hs(p),role:'sub',parent:DK,perm:PERMS[r]?r:'view',name:n};sv('amb_users',us);shell()}
+function subPerm(u,r){const us=US();if(us[u]&&us[u].parent==DK){us[u].perm=r;sv('amb_users',us)}}
+function subPw(u,i){const p=$('#sp'+i).value;if(p.length<4)return alert('סיסמה: 4 תווים לפחות');const us=US();if(us[u]&&us[u].parent==DK){us[u].h=hs(p);sv('amb_users',us);alert('הסיסמה עודכנה')}}
+function subDel(u){if(u==U)return alert('לא ניתן להסיר את המשתמש שמחובר כעת');if(!confirm('להסיר את המשתמש '+u+'?'))return;const us=US();if(us[u]&&us[u].parent==DK){delete us[u];sv('amb_users',us)}shell()}
+function chPw(){const us=US(),me=ME(),o=$('#op').value,a=$('#np1').value,b=$('#np2').value;if(!us[me]||us[me].h!=hs(o))return alert('הסיסמה הנוכחית שגויה');if(a.length<4)return alert('סיסמה חדשה: 4 תווים לפחות');if(a!=b)return alert('הסיסמאות אינן תואמות');us[me].h=hs(a);sv('amb_users',us);alert('הסיסמה שונתה');shell()}
+const backup=()=>dl('גיבוי_'+(D.gname||'gemach')+'_'+today()+'.json',new TextEncoder().encode(JSON.stringify({amb:VER,date:today(),data:D})));
+function restore(f){if(!f)return;const r=new FileReader();r.onload=e=>{try{const j=JSON.parse(e.target.result),d=j.data||j;if(!d||!Array.isArray(d.loans))throw 0;if(!confirm(`לשחזר גיבוי עם ${d.loans.length} הלוואות? הנתונים הנוכחיים יוחלפו.`))return;D={...defD(D.gname),...d};if(save()){alert('השחזור הושלם');go('dash')}}catch(x){alert('קובץ הגיבוי אינו תקין')}};r.readAsText(f)}
+function wipe(){if(prompt('למחיקת כל ההלוואות, התשלומים והמשימות של הגמ״ח הקלד: מחק')!=='מחק')return;D=defD(D.gname);if(save())go('dash')}
+/* ---------- אפליקציה (PWA) – פעיל רק כשהמערכת מותקנת מהאתר העצמאי ---------- */
+const APP=!/claude\.ai|claudeusercontent|anthropic/.test(location.hostname)&&/^https?:$/.test(location.protocol);let INS=null;
+if(APP){const m=document.createElement('link');m.rel='manifest';m.href='manifest.webmanifest';document.head.appendChild(m);
+[['apple-touch-icon','icons/icon-192.png'],['icon','icons/icon.svg']].forEach(([r,h])=>{const l=document.createElement('link');l.rel=r;l.href=h;document.head.appendChild(l)});
+const tc=document.createElement('meta');tc.name='theme-color';tc.content='#1d4ed8';document.head.appendChild(tc);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();INS=e;const b=$('#insB');if(b)b.hidden=false})}
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+function installApp(){if(INS){INS.prompt();INS.userChoice.finally(()=>{INS=null;const b=$('#insB');if(b)b.hidden=true})}else alert(/iphone|ipad/i.test(navigator.userAgent)?'באייפון: לחץ על כפתור השיתוף בספארי ⟵ "הוסף למסך הבית".':'בדפדפן: פתח את תפריט הדפדפן ⟵ "התקן אפליקציה" / "הוסף למסך הבית".')}
+initChat();loginV();
 </script></body></html>
