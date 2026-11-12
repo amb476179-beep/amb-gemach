@@ -1,0 +1,24 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.amb.gemach'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.amb.gemach'
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('VERSION_CODE') ?: '1')
+        versionName '3.1'
+    }
+    signingConfigs {
+        amb {
+            storeFile file(System.getenv('KEYSTORE_PATH') ?: '../amb.keystore')
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'ambgemach'
+            keyAlias System.getenv('KEY_ALIAS') ?: 'amb'
+            keyPassword System.getenv('KEY_PASSWORD') ?: 'ambgemach'
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.amb }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

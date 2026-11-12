@@ -339,7 +339,9 @@ const rows=()=>{$('#rows').innerHTML=rowsH($('#q').value)};
 const HD=['שם','שם משפחה','מספר זהות','מייל','טלפון','שם הילד','ת״ז הילד','בנק','סניף','חשבון','תאריך התחלה','יום חיוב','סכום הלוואה','מספר תשלומים','הו״ק (כן/לא)','מספר תשלומים ששולמו עד כה','סכום ששולם עד כה'];
 const KS=['first','last','tz','email','phone','childName','childTz','bank','branch','acct','start','day','amount','n','hok'];
 function dlBlob(name,data){const b=data instanceof Blob?data:new Blob([data]),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
-async function dl(name,data){let d=null;try{d=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
+function toB64(data){const u=data instanceof Uint8Array?data:data instanceof ArrayBuffer?new Uint8Array(data):Array.isArray(data)?new Uint8Array(data):new TextEncoder().encode(String(data));let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)}
+const MIME={xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',html:'text/html',json:'application/json',csv:'text/csv',txt:'text/plain'};
+async function dl(name,data){if(window.AMBAndroid){try{const r=AMBAndroid.saveFile(name,toB64(data),MIME[(name.split('.').pop()||'').toLowerCase()]||'');if(r!='ok')alert('השמירה נכשלה')}catch(e){alert('השמירה נכשלה')}return}let d=null;try{d=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
 if(!d){try{return dlBlob(name,data)}catch(e){return alert('לא ניתן להוריד קובץ בתצוגה זו')}}try{await d.save({filename:name,data})}catch(e){if(e&&e.code=='declined')return;alert('לא ניתן להוריד קובץ בתצוגה זו')}}
 const WAIT='ספריית האקסל עדיין נטענת, נסה שוב בעוד רגע';
 const wb=rows=>{if(!window.XLSX){alert(WAIT);throw 0}const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(rows),'לווים');w.Workbook={Views:[{RTL:true}]};return XLSX.write(w,{type:'array',bookType:'xlsx'})};
@@ -442,10 +444,10 @@ function ndrRec(){const w=$('#cc_w').value,a=num($('#cc_a').value),t=$('#cc_t').
 const src='אשראי – נדרים פלוס'+(t=='hk'?' (הו״ק)':'');if(w[0]=='l'){const l=L(w.slice(2));if(!l)return;l.pays.push({date:today(),amount:a,src})}else{const d=DP().find(x=>x.id==w.slice(2));if(!d)return;(d.txs=d.txs||[]).push({date:today(),amount:a,kind:t=='hk'?'monthly':'once',src})}
 if(save()){alert('התשלום נרשם');shell()}}
 let PV=null;
-function pv(t,html,fn,data){PV={fn,data};pvX();const m=document.createElement('div');m.id='mod';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:flex;align-items:center;justify-content:center;padding:10px';m.innerHTML=`<div class="card" style="width:min(820px,100%);max-height:94vh;display:flex;flex-direction:column;margin:0"><h3>${esc(t)}</h3><iframe id="pvf" title="תצוגה מקדימה" style="flex:1;min-height:55vh;border:1px solid var(--ln);border-radius:8px;background:#fff;width:100%" srcdoc="${esc(html)}"></iframe><div class="bar" style="margin:12px 0 0"><button onclick="pvDl()">אישור והורדה</button><button class="g" onclick="pvPr()">הדפסה</button><button class="g" onclick="pvX()">סגירה</button></div></div>`;document.body.appendChild(m)}
+function pv(t,html,fn,data){PV={fn,data,h:html,t};pvX();const m=document.createElement('div');m.id='mod';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:flex;align-items:center;justify-content:center;padding:10px';m.innerHTML=`<div class="card" style="width:min(820px,100%);max-height:94vh;display:flex;flex-direction:column;margin:0"><h3>${esc(t)}</h3><iframe id="pvf" title="תצוגה מקדימה" style="flex:1;min-height:55vh;border:1px solid var(--ln);border-radius:8px;background:#fff;width:100%" srcdoc="${esc(html)}"></iframe><div class="bar" style="margin:12px 0 0"><button onclick="pvDl()">אישור והורדה</button><button class="g" onclick="pvPr()">הדפסה</button><button class="g" onclick="pvX()">סגירה</button></div></div>`;document.body.appendChild(m)}
 const pvX=()=>{const m=$('#mod');if(m)m.remove()};
 const pvDl=async()=>{await dl(PV.fn,PV.data);pvX()};
-const pvPr=()=>{try{const f=$('#pvf').contentWindow;f.focus();f.print()}catch(e){alert('הדפסה לא זמינה בתצוגה זו – אפשר להוריד ולהדפיס')}};
+const pvPr=()=>{if(window.AMBAndroid&&PV&&PV.h){try{AMBAndroid.printHtml(PV.t||'AMB',PV.h)}catch(e){}return}try{const f=$('#pvf').contentWindow;f.focus();f.print()}catch(e){alert('הדפסה לא זמינה בתצוגה זו – אפשר להוריד ולהדפיס')}};
 function pay(){const id=$('#pl').value,a=num($('#pa2').value);if(!id||!a)return;L(id).pays.push({date:$('#pd2').value,amount:a,src:'ידני'});if(save())openL(id,'status');else shell()}
 
 /* ---------- משימות ---------- */
@@ -813,7 +815,7 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();INS=e;const b=$('#
 let CANOWN=APP?location.hash=='#admin':!(window.claude&&claude.use);
 if(!APP&&window.claude&&claude.use)claude.use('user').then(async u=>{CANOWN=!!(u&&await u.isOwner());if(!U&&$('#login'))loginV()}).catch(()=>{});
 if(APP)addEventListener('hashchange',()=>{CANOWN=location.hash=='#admin';if(!U)loginV()});
-const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone||/AMBGemachApp/.test(navigator.userAgent);
 function installApp(){if(INS){INS.prompt();INS.userChoice.finally(()=>{INS=null;const b=$('#insB');if(b)b.hidden=true})}else alert(/iphone|ipad/i.test(navigator.userAgent)?'באייפון: לחץ על כפתור השיתוף בספארי ⟵ "הוסף למסך הבית".':'בדפדפן: פתח את תפריט הדפדפן ⟵ "התקן אפליקציה" / "הוסף למסך הבית".')}
 initChat();loginV();initSrv();
 </script></body></html>
