@@ -1,10 +1,27 @@
 // AMB גמ"ח – שרת API (Neon Functions). כל גמ"ח רואה רק את הנתונים שלו; רק מנהל המערכת (owner) רואה הכל.
-import pg from 'pg';
 import crypto from 'node:crypto';
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
-pool.on('error', () => {}); // ניתוק של חיבור רדום – החיבור הבא ייפתח מחדש
-const q = (text, values) => pool.query(text, values).then(r => r.rows);
+// חיבור ל-Neon דרך HTTP (אותו פרוטוקול של הדרייבר הרשמי) – בלי ספריות חיצוניות
+const DB = new URL(process.env.DATABASE_URL);
+const SQL_URL = process.env.SQL_HTTP_URL || 'https://' + DB.hostname.replace(/^[^.]+\./, 'api.') + '/sql';
+const parse = (t, v) => {
+  if (v === null) return null;
+  if (t === 16) return v === 't';
+  if (t === 20 || t === 21 || t === 23 || t === 700 || t === 701 || t === 1700) return Number(v);
+  if (t === 114 || t === 3802) return JSON.parse(v);
+  if (t === 1184 || t === 1114) { const d = new Date(v.replace(' ', 'T').replace(/([+-]\d\d)$/, '$1:00')); return isNaN(d) ? v : d.toISOString(); }
+  return v;
+};
+async function q(text, values = []) {
+  const r = await fetch(SQL_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Neon-Connection-String': process.env.DATABASE_URL, 'Neon-Raw-Text-Output': 'true', 'Neon-Array-Mode': 'true' },
+    body: JSON.stringify({ query: text, params: values.map(v => v == null ? null : typeof v === 'object' ? JSON.stringify(v) : String(v)) }),
+  });
+  if (!r.ok) { const t = await r.text(); throw new Error('db ' + r.status + ': ' + t.slice(0, 300)); }
+  const j = await r.json(), f = j.fields || [];
+  return (j.rows || []).map(row => Object.fromEntries(row.map((v, i) => [f[i].name, parse(f[i].dataTypeID, v)])));
+}
 const one = async (text, values) => (await q(text, values))[0] || null;
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Max-Age': '86400' };
@@ -151,16 +168,12 @@ async function route(req) {
       const b = await body(req), un = String(b.username || '').trim().toLowerCase(), name = String(b.name || '').trim().slice(0, 120);
       if (!name || !USERNAME.test(un) || String(b.password || '').length < 6) return err(400, 'weak');
       if (await one('SELECT 1 FROM users WHERE username = $1', [un])) return err(409, 'taken');
-      const c = await pool.connect();
-      try {
-        await c.query('BEGIN');
-        const g = (await c.query('INSERT INTO gemachim (name) VALUES ($1) RETURNING id', [name])).rows[0];
-        await c.query("INSERT INTO users (username, password_hash, role, gemach_id) VALUES ($1, crypt($2, gen_salt('bf', 10)), 'gemach', $3)", [un, b.password, g.id]);
-        await c.query('INSERT INTO gemach_data (gemach_id, data) VALUES ($1, $2)', [g.id, defData(name)]);
-        await c.query('COMMIT');
-        log(u, g.id, 'gemach_created', { name });
-        return json(201, { id: g.id });
-      } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+      // פקודה אחת = פעולה אטומית (גמ"ח + משתמש + נתונים התחלתיים)
+      const g = await one(`WITH g AS (INSERT INTO gemachim (name) VALUES ($1) RETURNING id),
+        u AS (INSERT INTO users (username, password_hash, role, gemach_id) SELECT $2, crypt($3, gen_salt('bf', 10)), 'gemach', id FROM g),
+        d AS (INSERT INTO gemach_data (gemach_id, data) SELECT id, $4::jsonb FROM g) SELECT id FROM g`, [name, un, b.password, defData(name)]);
+      log(u, g.id, 'gemach_created', { name });
+      return json(201, { id: g.id });
     }
   }
   m = p.match(/^\/api\/gemachs\/([0-9a-f-]{36})(\/password)?$/i);

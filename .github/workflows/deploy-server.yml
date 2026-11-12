@@ -1,0 +1,45 @@
+# העלאת שרת AMB גמ"ח ל-Neon Functions – רץ אוטומטית בכל שינוי בתיקיית server, או ידנית מלשונית Actions
+name: Deploy server to Neon
+on:
+  push:
+    branches: [main]
+    paths: ['server/**', '.github/workflows/deploy-server.yml']
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NEON_PROJECT_ID: spring-truth-59214114
+      NEON_BRANCH_ID: br-misty-glade-bd2qf0eq
+      FUNCTION_SLUG: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Build
+        working-directory: server
+        run: |
+          npx --yes esbuild@0.24.0 index.mjs --bundle --minify --legal-comments=none --platform=node --target=node24 --format=esm --outfile=dist/index.mjs
+          cd dist && zip -q -9 -j ../function.zip index.mjs
+      - name: Deploy
+        working-directory: server
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          SETUP_KEY: ${{ secrets.SETUP_KEY }}
+        run: |
+          if [ -z "$NEON_API_KEY" ] || [ -z "$SETUP_KEY" ]; then echo "::error::חסרים הסודות NEON_API_KEY או SETUP_KEY בהגדרות המאגר"; exit 1; fi
+          ENV_JSON=$(jq -cn --arg k "$SETUP_KEY" '{SETUP_KEY:$k}')
+          curl -sS --fail-with-body -X POST \
+            "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/$NEON_BRANCH_ID/functions/$FUNCTION_SLUG/deployments" \
+            -H "Authorization: Bearer $NEON_API_KEY" -F "zip=@function.zip" -F "runtime=nodejs24" -F "environment=$ENV_JSON"
+          echo
+          for i in $(seq 1 30); do
+            R=$(curl -sS "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/$NEON_BRANCH_ID/functions/$FUNCTION_SLUG" -H "Authorization: Bearer $NEON_API_KEY")
+            ST=$(echo "$R" | jq -r '.. | objects | select(has("current_deployment")) | .current_deployment.status' | head -1)
+            echo "status: $ST"
+            if [ "$ST" = "completed" ]; then echo "$R" | jq -r '.. | objects | select(has("invocation_url")) | "URL: " + .invocation_url' | head -1; exit 0; fi
+            if [ "$ST" = "failed" ]; then echo "$R"; exit 1; fi
+            sleep 10
+          done
+          echo "::error::ההעלאה לא הסתיימה בזמן"; exit 1
