@@ -129,9 +129,9 @@ const ME=()=>IMP?OWNU:U;
 const canAdmin=()=>!!D&&(ROLE=='gemach'||IMP||(ROLE=='sub'&&PERM=='full'));
 const PERMS={full:'מנהל מלא',edit:'עריכה (ללא הגדרות)',view:'צפייה בלבד'};
 function loginV(msg){if(SRV)return srvLoginV(msg);U=null;supUnmount();document.documentElement.style.removeProperty('--pr');document.documentElement.style.removeProperty('--pr2');const no=!hasOwner()&&CANOWN,none=!Object.keys(US()).length;
-$('#app').innerHTML=`<div id="login" class="card"><h2>AMB מערכות</h2><p style="color:var(--mu);margin-top:-8px">${no?'הגדרה ראשונית – יצירת חשבון מנהל מערכת':'ניהול גמ״ח – כניסה'}</p><label for="u">שם משתמש</label><input id="u" autocomplete="username" autocapitalize="off"><label for="p" style="margin-top:8px">סיסמה</label><input id="p" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')${no?'setupOwner()':'login()'}"><p style="color:var(--er)" role="alert">${esc(msg||'')}</p><div class="bar"><button onclick="${no?'setupOwner()':'login()'}">${no?'יצירת חשבון מנהל':'כניסה'}</button></div>
+$('#app').innerHTML=`<div id="login" class="card">${typeof SRVFAIL!='undefined'&&SRVFAIL?`<div class="al e" role="alert" style="margin:-4px 0 12px">⚠ אין חיבור לשרת – לכן לא ניתן להיכנס עם החשבון שלך. בדוק את החיבור לאינטרנט, או שהסינון (למשל הדרן/נטפרי) מאפשר את כתובת השרת.<br><button class="g" style="margin-top:8px" onclick="location.reload()">ניסיון חוזר</button></div>`:''}<h2>AMB מערכות</h2><p style="color:var(--mu);margin-top:-8px">${no?'הגדרה ראשונית – יצירת חשבון מנהל מערכת':'ניהול גמ״ח – כניסה'}</p><label for="u">שם משתמש</label><input id="u" autocomplete="username" autocapitalize="off"><label for="p" style="margin-top:8px">סיסמה</label><input id="p" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')${no?'setupOwner()':'login()'}"><p style="color:var(--er)" role="alert">${esc(msg||'')}</p><div class="bar"><button onclick="${no?'setupOwner()':'login()'}">${no?'יצירת חשבון מנהל':'כניסה'}</button></div>
 <small style="color:var(--mu)">הנתונים נשמרים במכשיר זה.</small>${typeof APP!='undefined'&&APP&&!standalone()?'<p><button class="g" onclick="installApp()">📱 התקנה כאפליקציה</button></p>':''}</div>`}
-function login(){const us=US(),u=$('#u').value.trim().toLowerCase();if(us[u]&&us[u].h==hs($('#p').value))start(u);else loginV('פרטי כניסה שגויים')}
+function login(){const us=US(),u=$('#u').value.trim().toLowerCase();if(us[u]&&us[u].h==hs($('#p').value))start(u);else loginV(SRVFAIL?'אין חיבור לשרת – לא ניתן לבדוק את פרטי הכניסה':'פרטי כניסה שגויים')}
 function setupOwner(){if(!CANOWN)return loginV();const u=$('#u').value.trim().toLowerCase(),p=$('#p').value;if(!okU(u)||p.length<4)return loginV('נא למלא שם משתמש (ללא רווחים) וסיסמה של 4 תווים לפחות');const us=US();if(us[u]){if(us[u].h!=hs(p))return loginV('שם המשתמש קיים. להפיכה לבעלים הזן את הסיסמה הישנה שלו, או בחר שם אחר');us[u].role='owner';us[u].gname='בעלים'}else us[u]={h:hs(p),role:'owner',gname:'בעלים'};sv('amb_users',us);start(u)}
 function start(u){const us=US(),x=us[u];U=u;ROLE=x.role;IMP=false;PERM='full';AIM=[];
 if(ROLE=='owner'){OWNU=u;D=null;DK=null;view='own'}
@@ -635,7 +635,7 @@ pv('אישור הפקדה – '+d.first+' '+d.last,h,'אישור_הפקדה_'+d.
 /* ---------- שרת (Neon) – כניסה מכל מכשיר וסנכרון ---------- */
 const API_URL='https://br-misty-glade-bd2qf0eq-api.compute.c-8.us-east-2.aws.neon.tech';
 const PUB_URL='https://amb476179-beep.github.io/amb-gemach/';
-let SRV=null,SOWN=true,TOK=null,SV=0,SYNC='',PUSHT=null,POLLT=null,OWNL=null,SUBL=null,APPL=null,AUDL=null,GNAME='',APPACC=null,SRVU=null;
+let SRVFAIL=false,SRV=null,SOWN=true,TOK=null,SV=0,SYNC='',PUSHT=null,POLLT=null,OWNL=null,SUBL=null,APPL=null,AUDL=null,GNAME='',APPACC=null,SRVU=null;
 const gq=()=>IMP&&DK?'?g='+DK:'';
 async function api(m,p,b){const r=await fetch(SRV+p,{method:m,headers:{'Content-Type':'application/json',...(TOK?{Authorization:'Bearer '+TOK}:{})},body:b?JSON.stringify(b):undefined});let j={};try{j=await r.json()}catch(e){}
 if(r.status==401&&TOK&&!/\/api\/(login|setup)$/.test(p)){TOK=null;sv('amb_tok',null);if(U){logout();loginV('פג תוקף החיבור – נא להיכנס שוב')}}
@@ -643,7 +643,7 @@ if(!r.ok)throw Object.assign(new Error(j.error||'http'),{status:r.status,body:j}
 const SE={bad_login:'שם משתמש או סיסמה שגויים',too_many:'יותר מדי ניסיונות – נסה שוב בעוד כמה דקות',taken:'שם המשתמש תפוס',weak:'נא למלא את כל השדות; סיסמה של 6 תווים לפחות',bad_key:'קוד ההגדרה שגוי',owner_exists:'כבר הוגדר מנהל מערכת',bad_password:'הסיסמה הנוכחית שגויה',read_only:'הרשאת צפייה בלבד',confirm_name:'השם שהוקלד אינו תואם'};
 const srvErr=e=>SE[e&&e.message]||(e&&e.status?'שגיאת שרת ('+e.message+')':'אין חיבור לשרת');
 async function initSrv(){const base=String(ld('amb_api')||API_URL||'').replace(/\/+$/,'');if(!base||ld('amb_local'))return applyHash();
-try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000),r=await fetch(base+'/api/health',{signal:c.signal});clearTimeout(t);const j=await r.json();if(!j.ok)return applyHash();SRV=base;SOWN=!!j.owner}catch(e){return applyHash()}
+try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000),r=await fetch(base+'/api/health',{signal:c.signal});clearTimeout(t);const j=await r.json();if(!j.ok)throw 0;SRV=base;SOWN=!!j.owner;SRVFAIL=false}catch(e){SRVFAIL=true;if(!applyHash()&&!U)loginV();return}
 if(applyHash())return;TOK=ld('amb_tok');if(TOK){try{const j=await api('GET','/api/me');return srvStart(j.user)}catch(e){TOK=null;sv('amb_tok',null)}}if(!U)loginV()}
 addEventListener('hashchange',()=>{if(/^#apply=/.test(location.hash))applyHash()});
 function applyHash(){const m=location.hash.match(/^#apply=([0-9a-f-]{36})$/i);if(!m)return false;applyV(m[1]);return true}
