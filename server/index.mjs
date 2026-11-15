@@ -60,6 +60,7 @@ function gidOf(u, g) {
   if (u.role === 'owner') return UUID.test(g || '') ? g : null;
   return u.gemach_id;
 }
+const ownerBlocked = async gid => !!(await one("SELECT 1 FROM gemachim WHERE id = $1 AND settings->>'owner_access' = 'false'", [gid]));
 const newSession = async uid => {
   const token = crypto.randomBytes(32).toString('base64url');
   await q(`INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval '${SESSION_DAYS} days')`, [sha(token), uid]);
@@ -137,6 +138,7 @@ async function route(req) {
   if (p === '/api/data') {
     const gid = gidOf(u, url.searchParams.get('g'));
     if (!gid) return err(400, 'no_gemach');
+    if (u.role === 'owner' && await ownerBlocked(gid)) return err(403, 'owner_blocked');
     if (M === 'GET') {
       const r = await one('SELECT data, version, updated_at FROM gemach_data WHERE gemach_id = $1', [gid]);
       return json(200, r ? r : { data: null, version: 0 });
@@ -159,11 +161,11 @@ async function route(req) {
   // ---- ניהול גמחים (בעלים) ----
   if (p === '/api/gemachs') {
     if (u.role !== 'owner') return err(403, 'owner_only');
-    if (M === 'GET') return json(200, { gemachs: await q(`SELECT g.id, g.name, gu.username,
+    if (M === 'GET') return json(200, { gemachs: (await q(`SELECT g.id, g.name, gu.username, (g.settings->>'owner_access' = 'false') AS locked,
         (SELECT count(*) FROM users s WHERE s.gemach_id = g.id AND s.role = 'staff')::int AS staff,
         coalesce(jsonb_array_length(d.data->'loans'), 0) AS loans, coalesce(jsonb_array_length(d.data->'deps'), 0) AS deps, d.updated_at,
         (SELECT count(*) FROM support_messages m WHERE m.gemach_id = g.id AND m.sender_role = 'gemach' AND m.read_at IS NULL)::int AS unread
-      FROM gemachim g LEFT JOIN users gu ON gu.gemach_id = g.id AND gu.role = 'gemach' LEFT JOIN gemach_data d ON d.gemach_id = g.id ORDER BY g.created_at`) });
+      FROM gemachim g LEFT JOIN users gu ON gu.gemach_id = g.id AND gu.role = 'gemach' LEFT JOIN gemach_data d ON d.gemach_id = g.id ORDER BY g.created_at`)).map(g => g.locked ? { ...g, loans: null, deps: null, updated_at: null } : g) });
     if (M === 'POST') {
       const b = await body(req), un = String(b.username || '').trim().toLowerCase(), name = String(b.name || '').trim().slice(0, 120);
       if (!name || !USERNAME.test(un) || String(b.password || '').length < 6) return err(400, 'weak');
@@ -202,6 +204,7 @@ async function route(req) {
   if (p === '/api/staff' || /^\/api\/staff\/[0-9a-f-]{36}$/i.test(p)) {
     const gid = gidOf(u, url.searchParams.get('g'));
     if (!gid || (u.role !== 'owner' && !isAdmin(u))) return err(403, 'admin_only');
+    if (u.role === 'owner' && await ownerBlocked(gid)) return err(403, 'owner_blocked');
     const sid = p.split('/')[3];
     if (p === '/api/staff' && M === 'GET') return json(200, { staff: await q("SELECT id, username, display_name, permission, last_login FROM users WHERE gemach_id = $1 AND role = 'staff' ORDER BY created_at", [gid]) });
     if (p === '/api/staff' && M === 'POST') {
@@ -231,6 +234,20 @@ async function route(req) {
     }
   }
 
+  // ---- הגדרות פרטיות של הגמ"ח (חסימת גישת מנהל המערכת) ----
+  if (p === '/api/settings') {
+    if (u.role === 'owner') return err(403, 'gemach_only');
+    if (M === 'GET') { const r = await one('SELECT settings FROM gemachim WHERE id = $1', [u.gemach_id]); return json(200, { owner_access: !(r && r.settings && r.settings.owner_access === false) }); }
+    if (M === 'PATCH') {
+      if (!isAdmin(u)) return err(403, 'admin_only');
+      const b = await body(req);
+      if (typeof b.owner_access !== 'boolean') return err(400, 'bad');
+      await q("UPDATE gemachim SET settings = jsonb_set(coalesce(settings, '{}'::jsonb), '{owner_access}', to_jsonb($2::boolean)) WHERE id = $1", [u.gemach_id, b.owner_access]);
+      log(u, u.gemach_id, b.owner_access ? 'owner_access_on' : 'owner_access_off');
+      return json(200, { owner_access: b.owner_access });
+    }
+  }
+
   // ---- צ'אט שירות לקוחות ----
   if (p === '/api/support/threads' && M === 'GET') {
     if (u.role !== 'owner') return err(403, 'owner_only');
@@ -242,24 +259,36 @@ async function route(req) {
     const gid = gidOf(u, url.searchParams.get('g'));
     if (!gid) return err(400, 'no_gemach');
     if (M === 'GET') {
-      const rows = await q(`SELECT s.id, s.sender_role, s.body, s.created_at, coalesce(nullif(us.display_name, ''), us.username) AS by
+      const rows = await q(`SELECT s.id, s.sender_role, s.body, s.created_at, s.file_name, s.file_type, coalesce(nullif(us.display_name, ''), us.username) AS by
         FROM support_messages s LEFT JOIN users us ON us.id = s.sender_user_id WHERE s.gemach_id = $1 ORDER BY s.created_at LIMIT 500`, [gid]);
       await q('UPDATE support_messages SET read_at = now() WHERE gemach_id = $1 AND read_at IS NULL AND sender_role = $2', [gid, u.role === 'owner' ? 'gemach' : 'owner']);
       return json(200, { messages: rows });
     }
     if (M === 'POST') {
       if (limited('msg:' + u.id, 30, 60e3)) return err(429, 'too_many');
-      const b = await body(req, 10000), t = String(b.body || '').trim().slice(0, 2000);
+      const b = await body(req, 3.2e6), f = b.file && typeof b.file === 'object' ? b.file : null;
+      let t = String(b.body || '').trim().slice(0, 2000);
+      if (f && (typeof f.data !== 'string' || f.data.length > 2.9e6 || !/^[A-Za-z0-9+/=]+$/.test(f.data))) return err(413, 'file_too_large');
+      const fn = f ? String(f.name || 'file').replace(/[\\/:*?"<>|]/g, '_').slice(0, 120) : null;
+      if (!t && fn) t = '📎 ' + fn;
       if (!t) return err(400, 'empty');
-      const r = await one('INSERT INTO support_messages (gemach_id, sender_role, sender_user_id, body) VALUES ($1, $2, $3, $4) RETURNING id, created_at', [gid, u.role === 'owner' ? 'owner' : 'gemach', u.id, t]);
+      const r = await one('INSERT INTO support_messages (gemach_id, sender_role, sender_user_id, body, file_name, file_type, file_data) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, created_at', [gid, u.role === 'owner' ? 'owner' : 'gemach', u.id, t, fn, f ? String(f.type || '').slice(0, 100) : null, f ? f.data : null]);
       return json(201, r);
     }
+  }
+
+  m = p.match(/^\/api\/support\/file\/([0-9a-f-]{36})$/i);
+  if (m && M === 'GET') {
+    const r = await one('SELECT gemach_id, file_name, file_type, file_data FROM support_messages WHERE id = $1', [m[1]]);
+    if (!r || !r.file_data || (u.role !== 'owner' && r.gemach_id !== u.gemach_id)) return err(404, 'not_found');
+    return json(200, { name: r.file_name, type: r.file_type, data: r.file_data });
   }
 
   // ---- בקשות הלוואה ----
   if (p === '/api/applications' && M === 'GET') {
     const gid = gidOf(u, url.searchParams.get('g'));
     if (!gid) return err(400, 'no_gemach');
+    if (u.role === 'owner' && await ownerBlocked(gid)) return err(403, 'owner_blocked');
     return json(200, { applications: await q("SELECT id, data, status, created_at FROM loan_applications WHERE gemach_id = $1 AND (status = 'new' OR created_at > now() - interval '60 days') ORDER BY created_at DESC LIMIT 200", [gid]) });
   }
   m = p.match(/^\/api\/applications\/([0-9a-f-]{36})$/i);
@@ -276,6 +305,7 @@ async function route(req) {
   if (p === '/api/audit' && M === 'GET') {
     const gid = gidOf(u, url.searchParams.get('g'));
     if (!gid || (u.role !== 'owner' && !isAdmin(u))) return err(403, 'admin_only');
+    if (u.role === 'owner' && await ownerBlocked(gid)) return err(403, 'owner_blocked');
     return json(200, { log: await q('SELECT username, action, details, created_at FROM audit_log WHERE gemach_id = $1 ORDER BY created_at DESC LIMIT 200', [gid]) });
   }
   return err(404, 'not_found');
