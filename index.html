@@ -812,17 +812,17 @@ const ok=m=>ask('האם ביקשתם '+m+'?',{danger:/למחוק|להסיר|לח
 const note=m=>ask(String(m),{info:1,icon:/^(יובאו|עודכנו|נשמר|הסיסמה|ההודעה|השחזור|התשלום|החיוב|הקישור|הגמ״ח נוסף)/.test(String(m))?'✅':'ℹ️'});
 window.alert=m=>{note(m)};
 // שליחה במייל (נשלח מתוכנת המייל של המכשיר; עותק נסתר לכתובת הגמ"ח שבהגדרות)
-const mailTo=(to,s,b)=>'mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b)+(D&&D.email?'&bcc='+encodeURIComponent(D.email):'');
+const mailTo=(to,s,b)=>'mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b)+'';
 // חלון בחירת דרך שליחת המייל: Gmail / Outlook / תוכנת המייל / העתקה
 const MLM={};const mlk=h=>{const k=uid();MLM[k]=h;return k};
 const APPWV=/AMBGemachApp/.test(navigator.userAgent);
 function mailParts(h){try{const u=new URL(h),q=u.searchParams;return {to:decodeURIComponent(u.pathname||''),s:q.get('subject')||'',b:q.get('body')||'',bcc:q.get('bcc')||''}}catch(e){return {to:'',s:'',b:'',bcc:''}}}
 function mailChoose(k){const h=MLM[k];if(!h)return;const m=mailParts(h),E=encodeURIComponent,last=ld('amb_mailc')||'',me=((D&&D.email)||'').trim();
 if(!me){modal('✉️ חסרה כתובת מייל של הגמ״ח',`<p style="margin-top:0">הודעות נשלחות <b>רק</b> מכתובת המייל של הגמ״ח שמוגדרת בהגדרות, ועדיין לא הוגדרה כתובת.</p><div style="display:grid;gap:8px"><button style="text-align:right;padding:12px 14px" onclick="mdX();go('set')">⚙️ מעבר להגדרות</button><button class="g" style="text-align:right;padding:12px 14px" onclick="mailCopy('${k}')">📋 העתקת ההודעה</button></div>`);return}
-const gm='https://mail.google.com/mail/?authuser='+E(me)+'&view=cm&fs=1&to='+E(m.to)+'&su='+E(m.s)+'&body='+E(m.b)+(m.bcc?'&bcc='+E(m.bcc):'');
+const gmc='https://mail.google.com/mail/?authuser='+E(me)+'&view=cm&fs=1&to='+E(m.to)+'&su='+E(m.s)+'&body='+E(m.b),gm='https://accounts.google.com/AccountChooser?Email='+E(me)+'&continue='+E(gmc);
 const ol='https://outlook.live.com/mail/0/deeplink/compose?to='+E(m.to)+'&subject='+E(m.s)+'&body='+E(m.b);
 const opts=[['gmail','📧 Gmail – '+me,gm]];if(/@(outlook|hotmail|live|msn)\./i.test(me))opts.push(['outlook','📨 Outlook באינטרנט – '+me,ol]);
-modal('✉️ שליחת מייל',`<p style="margin-top:0">אל: <b dir="ltr">${esc(m.to||'—')}</b><br>נושא: <b>${esc(m.s)}</b><br>שולח: <b dir="ltr">${esc(me)}</b> (מייל הגמ״ח)</p><p style="color:var(--mu);font-size:13px;margin-top:-4px">ההודעה נפתחת עם חשבון הגמ״ח בלבד, ולא עם חשבון אחר שמחובר במחשב. אם החשבון אינו מחובר, השירות עצמו יבקש להזין את סיסמתו – המערכת לא מקבלת ולא שומרת סיסמאות מייל. נשאר רק ללחוץ "שליחה".</p>
+modal('✉️ שליחת מייל',`<p style="margin-top:0">אל: <b dir="ltr">${esc(m.to||'—')}</b><br>נושא: <b>${esc(m.s)}</b><br>שולח: <b dir="ltr">${esc(me)}</b> (מייל הגמ״ח)</p><p style="color:var(--mu);font-size:13px;margin-top:-4px">גוגל תבקש להתחבר לחשבון הגמ״ח (או תבחר אותו אם הוא כבר מחובר), ורק אחר כך תיפתח ההודעה. <b>לפני שליחה בדקו בשורה "מאת" שמופיעה כתובת הגמ״ח.</b> המערכת לא מקבלת ולא שומרת סיסמאות מייל.</p>
 <div style="display:grid;gap:8px">${opts.map(([id,t,u])=>`<button class="${id==last?'':'g'}" style="text-align:right;padding:12px 14px" onclick="mailGo('${id}','${mlk(u)}')">${t}${id==last?' <small>(בשימוש אחרון)</small>':''}</button>`).join('')}
 <button class="g" style="text-align:right;padding:12px 14px" onclick="mailCopy('${k}')">📋 העתקת ההודעה (לשליחה מתוכנת המייל של הכתובת הזו)</button></div>`)}
 function mailGo(id,k){const u=MLM[k];if(!u)return;try{localStorage.setItem('amb_mailc',JSON.stringify(id))}catch(e){}
